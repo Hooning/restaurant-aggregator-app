@@ -16,7 +16,7 @@ const port  = process.env.PORT || 8080;
 
 // Configuration
 // ================================================================================================
-
+console.log('# Node Environment : ' + process.env.NODE_ENV);
 // Set up Mongoose
 mongoose.connect(isDev ? config.db_dev : config.db);
 mongoose.Promise = global.Promise;
@@ -62,7 +62,6 @@ app.listen(port, '0.0.0.0', (err) => {
   if (err) {
     console.log(err);
   }
-
   console.info('>>> 🌎 Open http://0.0.0.0:%s/ in your browser.', port);
 });
 
