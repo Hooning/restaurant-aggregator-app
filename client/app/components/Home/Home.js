@@ -31,6 +31,7 @@ class Home extends Component {
     fetch('/api/counters', { method: 'POST' })
       .then(res => res.json())
       .then(json => {
+        console.log('# fetch =>')
         let data = this.state.counters;
         data.push(json);
 
@@ -85,22 +86,22 @@ class Home extends Component {
 
   render() {
     return (
-      <>
+      <div>
         <p>Counters:</p>
 
         <ul>
-          { this.state.counters.map((counter, i) => (
+          {this.state.counters.map((counter, i) => (
             <li key={i}>
               <span>{counter.count} </span>
               <button onClick={() => this.incrementCounter(i)}>+</button>
               <button onClick={() => this.decrementCounter(i)}>-</button>
               <button onClick={() => this.deleteCounter(i)}>x</button>
             </li>
-          )) }
+          ))}
         </ul>
 
         <button onClick={this.newCounter}>New counter</button>
-      </>
+      </div>
     );
   }
 }
