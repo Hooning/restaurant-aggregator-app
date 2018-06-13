@@ -46,7 +46,7 @@ module.exports = {
             {
               loader: 'css-loader',
               options: {
-                'sourceMap': true,
+                'sourceMap': false,
                 'importLoaders': 1
               }
             },
@@ -59,6 +59,18 @@ module.exports = {
               }
             },
             'sass-loader'
+          ]
+        })
+      },
+
+      // CSS files
+      {
+        test: /\.css$/,
+        loader: ExtractTextPlugin.extract({
+          //fallback: 'style-loader',
+          use: [
+            {loader: 'css-loader'},
+            {loader: 'style-loader'}
           ]
         })
       }

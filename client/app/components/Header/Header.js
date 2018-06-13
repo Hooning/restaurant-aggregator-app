@@ -6,12 +6,8 @@ const Header = () => (
   <header>
     <Link to="/">Home</Link>
     <nav>
-      <Link to="/helloworld">Hello World</Link>
+      <Link to="/dishcrawler">Dish Crawler</Link>
     </nav>
-    <nav>
-      <Link to="/helloworld2">Hello World2</Link>
-    </nav>
-
     <hr />
   </header>
 );

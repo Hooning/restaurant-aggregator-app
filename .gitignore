@@ -3,6 +3,7 @@ dist/
 
 # Config file
 config/config.js
+.env
 
 # Node stuff
 node_modules

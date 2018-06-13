@@ -1,7 +1,24 @@
 import React, { Component } from 'react';
 import 'whatwg-fetch';
+import {
+  Collapse,
+  Navbar,
+  NavbarToggler,
+  NavbarBrand,
+  Nav,
+  NavItem,
+  NavLink,
+  Container,
+  Row,
+  Col,
+  Jumbotron,
+  Button,
+  ListGroup,
+  ListGroupItem
+} from 'reactstrap';
 
-class Home extends Component {
+
+class Home extends React.Component {
   constructor(props) {
     super(props);
 
@@ -48,6 +65,7 @@ class Home extends Component {
       .then(res => res.json())
       .then(json => {
         this._modifyCounter(index, json);
+        //console.log(json);
       });
   }
 
@@ -88,19 +106,21 @@ class Home extends Component {
     return (
       <div>
         <p>Counters:</p>
-
         <ul>
+          <ListGroup flush>
           {this.state.counters.map((counter, i) => (
-            <li key={i}>
-              <span>{counter.count} </span>
-              <button onClick={() => this.incrementCounter(i)}>+</button>
-              <button onClick={() => this.decrementCounter(i)}>-</button>
-              <button onClick={() => this.deleteCounter(i)}>x</button>
-            </li>
+            <ListGroupItem key={i}>
+              <span>{counter.count}  </span>
+              <Button outline color="primary" size="sm" onClick={() => this.incrementCounter(i)}>+</Button>{' '}
+              <Button outline color="primary" size="sm" onClick={() => this.decrementCounter(i)}>-</Button>{' '}
+              <Button color="danger" size="sm" onClick={() => this.deleteCounter(i)}>x</Button>{' '}
+            </ListGroupItem>
           ))}
+          </ListGroup>
         </ul>
+        
+        <Button color="secondary" onClick={this.newCounter}>New counter</Button>
 
-        <button onClick={this.newCounter}>New counter</button>
       </div>
     );
   }

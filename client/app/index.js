@@ -8,13 +8,14 @@ import {
   Switch
 } from 'react-router-dom'
 
+import '!style-loader!css-loader!bootstrap/dist/css/bootstrap.css';
+
 import App from './components/App/App';
 import NotFound from './components/App/NotFound';
 
 import Home from './components/Home/Home';
 
-import HelloWorld from './components/HelloWorld/HelloWorld';
-import HelloWorld2 from './components/HelloWorld/HelloWorld2';
+import DishCrawler from './components/Crawler/DishCrawler';
 
 import './styles/styles.scss';
 
@@ -23,8 +24,7 @@ render((
     <App>
       <Switch>
         <Route exact path="/" component={Home}/>
-        <Route path="/helloworld" component={HelloWorld}/>
-        <Route path="/helloworld2" component={HelloWorld2}/>
+        <Route path="/dishcrawler" component={DishCrawler}/>
         <Route component={NotFound}/>
       </Switch>
     </App>
