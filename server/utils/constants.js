@@ -5,6 +5,12 @@ const PASTA = "Pasta";
 const SANDWICH = "Sandwich";
 const MAIN_COURSE = "Main Course";
 const DESSERT = "Dessert";
+const EURO = "€";
+const DOLLAR = "$";
+const RESTAURANT = {
+    pizzeriailfico : "Pizzeria Il Fico",
+    maccheronirepublic : "Maccheroni Republic"
+};
 
 module.exports = {
     APPETIZER: APPETIZER,
@@ -13,6 +19,9 @@ module.exports = {
     PASTA: PASTA,
     SANDWICH: SANDWICH,
     MAIN_COURSE: MAIN_COURSE,
-    DESSERT: DESSERT
+    DESSERT: DESSERT,
+    EURO: EURO,
+    DOLLAR: DOLLAR,
+    RESTAURANT: RESTAURANT
 }
 

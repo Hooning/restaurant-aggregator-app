@@ -1,4 +1,5 @@
 const Dish = require('../models/Dish');
+const Restaurant = require('../models/Restaurant');
 const mongoose = require('mongoose');
 
 module.exports = {
@@ -6,20 +7,28 @@ module.exports = {
     searchDishes : (query) => {
         return new Promise((resolve, reject) => {
             console.log('# searchDishes query: ' + JSON.stringify(query));
-            resolve(Dish.find(query).exec());
+            resolve(Dish.find(query).populate('restaurant').exec());
         })
     },
 
-    insertDishes: (json) => {
+    insertDishes: (json, id) => {
         // validation
-
+        if(id && !Array.isArray(json)){
+            json.restaurant = id;
+        }
+        if(Array.isArray(json)){
+            json.forEach((dish) => {
+                if(id){
+                    dish.restaurant = id;                    
+                }
+            })
+        }
         // main
         return new Promise((resolve, rejected) => {
             var DishSchema = require('mongoose').model('Dish').schema;
             const Dish = mongoose.model('Dish', DishSchema);
             var dishes = json;
             resolve(Dish.collection.insert(dishes, onInsert));
-            
             function onInsert(err, docs) {
                 if (err) {
                     // TODO: handle error
@@ -33,6 +42,16 @@ module.exports = {
                 }
             }
         });
+    },
+
+    getRestaurantId: (string) =>{
+        let query = {
+            'name': string
+        }
+        return Restaurant.findOne(query).exec();
+        // return new Promise ((resolve, reject) => {
+        //     resolve (Restaurant.findOne(query).exec()); 
+        // });
     },
 
     deleteDish: (json) => {

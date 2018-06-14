@@ -3,7 +3,7 @@ var category = require('../utils/constants');
 
 const DishSchema = new mongoose.Schema({
   name: String,
-  price: { currency: String, value: Number, },
+  price: { currency: String, value: String, },
   ingredients: String,
   categories: {
       type: String, 
@@ -19,7 +19,7 @@ const DishSchema = new mongoose.Schema({
      default: category.MAIN_COURSE
   },
   restaurant: {type: mongoose.Schema.Types.ObjectId, ref: 'Restaurant'},
-
+  
 });
 
 module.exports = mongoose.model('Dish', DishSchema);

@@ -56,7 +56,9 @@ class DishCrawler extends React.Component{
 
       fetch(`/api/dishes`, {method: 'GET'} )
       .then(res => res.json())
-      .then(json => { 
+      .then(json => {
+        console.log( json );
+        
         this.setState({
           dishes : json,
         });
@@ -77,6 +79,19 @@ class DishCrawler extends React.Component{
         });
       });
     }    
+  }
+
+  crawlDishes(){
+    fetch('/api/crawlDishes', {
+      method: 'POST',
+      headers: {
+        'Content-Type':'application/json'
+      }
+    })
+    .then(res => {res.json(); data.value = "";})
+    .then(json => {
+      console.log('# Client: fetch => newDish')
+    });
   }
 
   newDishes() {
@@ -100,8 +115,7 @@ class DishCrawler extends React.Component{
        method: 'POST',
        headers: {
          'Content-Type':'application/json'
-       },
-       body: data.value
+       }
     })
     .then(res => {res.json(); data.value = "";})
     .then(json => {
@@ -148,13 +162,13 @@ class DishCrawler extends React.Component{
       <Table size="sm">
         <thead>
         <tr>
-          <th>Categorie</th><th>Dish Name</th><th>Ingredients</th><th>Price</th><th>Action</th>
+          <th>Restaurant</th><th>Categorie</th><th>Dish Name</th><th>Ingredients</th><th>Price</th><th>Action</th>
         </tr>
         </thead>
         <tbody>
         {this.state.dishes.map((dish, i) => (
           <tr key={dish._id}>
-              <td>{dish.categories}</td><td>{dish.name}</td><td>{dish.ingredients}</td><td>{dish.price.currency}{' '}{dish.price.value}</td>
+              <td>{dish.restaurant.name}</td><td>{dish.categories}</td><td>{dish.name}</td><td>{dish.ingredients}</td><td>{dish.price.currency}{' '}{dish.price.value}</td>
               <td>
                 <Button outline color="danger" size="sm" onClick={() => this.deleteDish(i)}>Delete</Button>{' '}  
               </td>
@@ -174,6 +188,7 @@ class DishCrawler extends React.Component{
                 </FormGroup>
               </Form>
               <Button color="secondary" size="sm" onClick={() => this.newDishes()}>New Dishes</Button>{' '}
+              <Button color="secondary" size="sm" onClick={() => this.crawlDishes()}>Crawl Dishes</Button>{' '}
               </td>
             </tr>
           </tbody>
