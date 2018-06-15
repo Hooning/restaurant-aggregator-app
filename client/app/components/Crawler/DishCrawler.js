@@ -37,7 +37,7 @@ class DishCrawler extends React.Component{
     }
   }
 
-  getDishes() {
+  getDishesByQuery() {
     this.setState({
       dishes: [],
     });
@@ -57,7 +57,7 @@ class DishCrawler extends React.Component{
       fetch(`/api/dishes`, {method: 'GET'} )
       .then(res => res.json())
       .then(json => {
-        console.log( json );
+        // console.log( json );
         
         this.setState({
           dishes : json,
@@ -81,6 +81,33 @@ class DishCrawler extends React.Component{
     }    
   }
 
+  getDishes(){
+    var data = document.getElementById('query');
+
+    if( validator.isEmpty(data.value) ){
+      fetch(`/api/dishes`, {method: 'GET'} )
+      .then(res => res.json())
+      .then(json => {
+        console.log(json);
+        this.setState({
+          dishes : json,
+        });
+      });
+
+    }else{
+      var searchString = data.value;
+      this.query = {"searchString": searchString};
+      fetch(`/api/dishes?searchString=${searchString}`, {method: 'GET'} )
+      .then(res => res.json())
+      .then(json => { 
+        console.log(json);
+        this.setState({
+          dishes : json,
+        });
+      });
+    }
+  }
+
   crawlDishes(){
     fetch('/api/crawlDishes', {
       method: 'POST',
@@ -88,7 +115,7 @@ class DishCrawler extends React.Component{
         'Content-Type':'application/json'
       }
     })
-    .then(res => {res.json(); data.value = "";})
+    .then(res => { data.value = "";return res.json();})
     .then(json => {
       console.log('# Client: fetch => newDish')
     });

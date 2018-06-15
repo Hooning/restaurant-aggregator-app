@@ -26,6 +26,7 @@ var htmlCrawler = new Crawler({
       if(res.options.uri == pizzeriailficoURI) { 
         dishUtil.getRestaurantId(constants.RESTAURANT.pizzeriailfico)
           .then((data)=> {
+            console.log(data);
             dishUtil.insertDishes(pizzeriailfico($), data._id)
           });        
         
@@ -103,7 +104,7 @@ function pizzeriailfico($){
 }
 
 function maccheronirepublic($){
-  fs.writeFile("./maccheronirepublic.html", $(".menu"));
+  // fs.writeFile("./maccheronirepublic.html", $(".menu"));
 
   let fullMenu = {};
   let Categories = $(".menu").find('.header-menu-inner');
