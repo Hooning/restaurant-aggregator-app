@@ -22,12 +22,14 @@ module.exports = {
             return constants.DESSERT;
         }
 
-        if (string.toLowerCase().match(/(entree|main|)/)) {
+        if (string.toLowerCase().match(/(entree|main)/)) {
             return constants.MAIN_COURSE;
         }
 
         if (string.toLowerCase().match(/(sandwich|burger)/)) {
             return constants.SANDWICH;
         }
+
+        return null;
     } 
 }

@@ -1,6 +1,8 @@
 const Dish = require('../models/Dish');
 const Restaurant = require('../models/Restaurant');
 const mongoose = require('mongoose');
+const categoryUtil = require('./categoryUtil');
+
 
 removeAllSymbolFromString = (str) => {
   return str.replace(/[^a-zA-Z ]/g, "");
@@ -61,21 +63,34 @@ normalSearch = (searchString) => {
   })
 };
 
-normalSearchUseDescription = (searchString) => {
+normalSearchUseDescription = (searchString, foodType) => {
   if(!searchString){
     return getAllDishes();
   }
   // db.dishes.aggregate(
   //  [
-  //     { $project: { description: { $concat: [ "$name", " ", "$ingredients" ] } } },
+  //     { $project: { 
+  //       description: { $concat: [ "$name", " ", "$ingredients" ] }, 
+  //       categories: "$categories" 
+  //     } },
   //     {$match:{
-  //     $or: [
+  //     $and: [
   //         {$or: [
   //             {'description': {'$regex': ".*Prosciutto.*", $options: 'i'}},
   //             {'description': {'$regex': ".*basil.*", $options: 'i'}},
   //             {'description': {'$regex': ".*TRIPPA.*", $options: 'i'}}
-  //         ]}
+  //         ]},
+  //             {'categories': 'Pasta'}
   //     ]}}
+  //  ]
+  // )
+  // db.dishes.aggregate(
+  //  [
+  //     { $project: { 
+  //       description: { $concat: [ "$name", " ", "$ingredients" ] }, 
+  //       categories: "$categories"
+  //     } },
+
   //  ]
   // )
 
@@ -87,12 +102,13 @@ normalSearchUseDescription = (searchString) => {
   query[0]['$project']['description']['$concat'][0] = '$name' ;
   query[0]['$project']['description']['$concat'][1] = " ";
   query[0]['$project']['description']['$concat'][2] = '$ingredients';
+  query[0]['$project']['categories'] = '$categories';
 
   query[1] = {};
   query[1]['$match'] = {};
-  query[1]['$match']['$or'] = [];
-  query[1]['$match']['$or'][0] = {};
-  query[1]['$match']['$or'][0]['$or'] = [];
+  query[1]['$match']['$and'] = [];
+  query[1]['$match']['$and'][0] = {};
+  query[1]['$match']['$and'][0]['$or'] = [];
 
   // ANTIPASTO bruschetta => 
   var fragments = searchString.trim().split(" ");
@@ -102,9 +118,15 @@ normalSearchUseDescription = (searchString) => {
       newFilterForDescription['description'] = {};
       newFilterForDescription['description']['$regex'] = ".*" + fragment + ".*";
       newFilterForDescription['description']['$options'] = "i";
-      query[1]['$match']['$or'][0]['$or'].push(newFilterForDescription);
+      query[1]['$match']['$and'][0]['$or'].push(newFilterForDescription);
     }
   });
+
+  if(foodType){
+    let newFilterForCategory = {};
+    newFilterForCategory['categories'] = foodType;
+    query[1]['$match']['$and'][1] = newFilterForCategory;
+  }
   let idArray = [];
   return new Promise((resolve, rejected) => {
     Dish.aggregate(query).exec().then((dishes)=> {
@@ -129,12 +151,30 @@ classifySearch = (searchString) => {
   let searchType = "";
   let preciseSearchString = [];
   let fragments = [];
-  if(searchString.includes('without')){
-    console.log(searchString.includes('without'));
+  let foodType = "";
+  if(searchString.includes('type:')){
+    var typeFragments = searchString.trim().split(" ");
+    for(let i = 0; i < typeFragments.length; i++) {
+      if (typeFragments[i].includes('type:')){
+        if(typeFragments[i].trim() === 'type:'){
+          if(typeFragments[i+1]){
+            foodType = categoryUtil.convertCategories(typeFragments[i+1].trim());
+            let index = searchString.indexOf('type:');
+            searchString = searchString.slice(0, index) + " " + searchString.slice(index + 5 + typeFragments[i+1].length);
+          }
+        }else{
+          foodType = categoryUtil.convertCategories(typeFragments[i].trim().substring(5));     
+          let index = searchString.indexOf('type:');
+          searchString = searchString.slice(0, index) + " " + searchString.slice(index + typeFragments[i].length); 
+        }
+      }
+    }
+  }
+
+  if(searchString.includes('without:')){
   }
   if(!searchString.includes('without')){ 
     if(searchString.includes('"')){
-      console.log('no without');
       let indices = [];
       for(let i = 0; i < searchString.length; i++) {
         if (searchString[i] === '"') indices.push(i);
@@ -153,14 +193,14 @@ classifySearch = (searchString) => {
         // });
         fragments.push(smallString.trim());
       })
+
       return new Promise ((resolve, reject)=> {
-       resolve(preciseSearch(fragments));
+       resolve(preciseSearch(fragments, foodType));
       })
       
     }else{
-      console.log('no precise');
       return new Promise ((resolve, reject)=> {
-       resolve(normalSearchUseDescription(searchString));
+       resolve(normalSearchUseDescription(searchString, foodType));
       })
       
     }
@@ -170,7 +210,8 @@ classifySearch = (searchString) => {
   // }
 }
 
-preciseSearch = (fragments) => {
+preciseSearch = (fragments, foodType) => {
+
   let query = [];
   query[0] = {}; 
   query[0]['$project'] = {};
