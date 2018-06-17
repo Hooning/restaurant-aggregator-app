@@ -58,7 +58,6 @@ class DishCrawler extends React.Component{
       .then(res => res.json())
       .then(json => {
         // console.log( json );
-        
         this.setState({
           dishes : json,
         });
@@ -88,23 +87,21 @@ class DishCrawler extends React.Component{
       fetch(`/api/dishes`, {method: 'GET'} )
       .then(res => res.json())
       .then(json => {
-        console.log(json);
         this.setState({
-          dishes : json,
+          dishes : json
         });
-      });
+      }).catch(err => console.log(err));
 
     }else{
       var searchString = data.value;
       this.query = {"searchString": searchString};
       fetch(`/api/dishes?searchString=${searchString}`, {method: 'GET'} )
-      .then(res => res.json())
+      .then(res => { console.log(res);return res.json()})
       .then(json => { 
-        console.log(json);
         this.setState({
           dishes : json,
         });
-      });
+      }).catch(err => console.log(err));
     }
   }
 
