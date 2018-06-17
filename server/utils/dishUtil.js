@@ -80,7 +80,6 @@ normalSearchUseDescription = (searchString) => {
   // )
 
   let query = [];
-  let queryMaxIndex = 0; 
   query[0] = {}; 
   query[0]['$project'] = {};
   query[0]['$project']['description'] = {};
@@ -118,12 +117,13 @@ normalSearchUseDescription = (searchString) => {
       resolve(Dish.find(newQuery).populate('restaurant').exec());
     }) 
   })
-  
- 
 }
 
 classifySearch = (searchString) => {
-  if(!searchString.trim()){
+  if(!searchString){
+    return getAllDishes();
+  }
+  if (!searchString.trim()){
     return getAllDishes();
   }
   let searchType = "";
@@ -132,8 +132,9 @@ classifySearch = (searchString) => {
   if(searchString.includes('without')){
     console.log(searchString.includes('without'));
   }
-  if(!searchString.includes('without')){
+  if(!searchString.includes('without')){ 
     if(searchString.includes('"')){
+      console.log('no without');
       let indices = [];
       for(let i = 0; i < searchString.length; i++) {
         if (searchString[i] === '"') indices.push(i);
@@ -146,14 +147,22 @@ classifySearch = (searchString) => {
         }
       }
       preciseSearchString.forEach((smallString)=> {
-        let fragment = smallString.trim().split(" ");
-        fragment.forEach((smallFragment) => {
-          fragments.push(smallFragment);
-        });
+        // let fragment = smallString.trim().split(" ");
+        // fragment.forEach((smallFragment) => {
+        //   fragments.push(smallFragment);
+        // });
+        fragments.push(smallString.trim());
       })
-      preciseSearch(fragments);
+      return new Promise ((resolve, reject)=> {
+       resolve(preciseSearch(fragments));
+      })
+      
     }else{
-      normalSearch(searchString);
+      console.log('no precise');
+      return new Promise ((resolve, reject)=> {
+       resolve(normalSearchUseDescription(searchString));
+      })
+      
     }
   }
   // if(searchType === 'preciseSearch'){
@@ -162,38 +171,47 @@ classifySearch = (searchString) => {
 }
 
 preciseSearch = (fragments) => {
-  if(!searchString){
-    return getAllDishes();
-  }
-  let query = {};
+  let query = [];
+  query[0] = {}; 
+  query[0]['$project'] = {};
+  query[0]['$project']['description'] = {};
+  query[0]['$project']['description']['$concat'] = [];
+  query[0]['$project']['description']['$concat'][0] = '$name' ;
+  query[0]['$project']['description']['$concat'][1] = " ";
+  query[0]['$project']['description']['$concat'][2] = '$ingredients';
 
-  query['$or'] = [];           
-  query['$or'][queryMaxIndex] = {};
-  query['$or'][queryMaxIndex]['$or'] = [];
-  queryMaxIndex++;
-  query['$or'][queryMaxIndex] = {};    
-  query['$or'][queryMaxIndex]['$or'] = [];
-  queryMaxIndex++;
+  query[1] = {};
+  query[1]['$match'] = {};
+  query[1]['$match']['$or'] = [];
+  query[1]['$match']['$or'][0] = {};
+  query[1]['$match']['$or'][0]['$and'] = [];
 
   // ANTIPASTO bruschetta => 
   // let fragments = searchString.trim().split(" ");
   fragments.forEach((fragment) => {
-    let newFilterForName = {};
-    newFilterForName['name'] = {};
-    newFilterForName['name']['$regex'] = ".*" + fragment + ".*";
-    newFilterForName['name']['$options'] = "i";
-    query['$or'][0]['$or'].push(newFilterForName);
-
-    let newFilterForIngredients = {};
-    newFilterForIngredients['name'] = {};
-    newFilterForIngredients['name']['$regex'] = ".*" + fragment + ".*";
-    newFilterForIngredients['name']['$options'] = "i";
-    query['$or'][1]['$or'].push(newFilterForIngredients);
+    if(fragment.trim()){
+      console.log(fragment);
+      let newFilterForDescription = {};
+      newFilterForDescription['description'] = {};
+      newFilterForDescription['description']['$regex'] = ".*" + fragment + ".*";
+      newFilterForDescription['description']['$options'] = "i";
+      query[1]['$match']['$or'][0]['$and'].push(newFilterForDescription);
+    }
   });
 
-  return new Promise ((resolve, reject) => {
-    resolve (Dish.find(query).exec());
-  });
+  let idArray = [];
+  return new Promise((resolve, rejected) => {
+    Dish.aggregate(query).exec().then((dishes)=> {
+    dishes.forEach((dish)=>{
+      idArray.push(dish._id);
+
+    });
+    let newQuery = {};
+    newQuery['_id'] = {};
+    newQuery['_id']['$in'] = idArray;
+      resolve(Dish.find(newQuery).populate('restaurant').exec());
+    }) 
+  })
 };
 
 getAllDishes = () =>{
@@ -206,7 +224,7 @@ module.exports = {
 
 searchDishes : (query) => {
   return new Promise ((resolve, reject)=> {
-   resolve(normalSearchUseDescription(query));
+   resolve(classifySearch(query));
   })
 },
 
