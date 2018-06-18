@@ -41,7 +41,7 @@ normalSearch = (searchString) => {
   queryMaxIndex++;
 
   // Prosciutto  basil  TRIPPA => 4
-  var fragments = searchString.trim().split(" ");
+  let fragments = searchString.trim().split(" ");
   fragments.forEach((fragment) => {
     if(fragment.trim()){
       let newFilterForName = {};
@@ -65,13 +65,31 @@ normalSearch = (searchString) => {
 
 normalSearchUseDescription = (searchString, foodType) => {
   if(!searchString){
+    if(foodType){
+     return getAllDishesOfSpecificCategory(foodType);
+    }
     return getAllDishes();
   }
+  if(searchString.trim() == ""){
+    if(foodType){
+     return getAllDishesOfSpecificCategory(foodType);
+    }
+    return getAllDishes();
+  }
+
+  // mongodb query use lookup
   // db.dishes.aggregate(
-  //  [
-  //     { $project: { 
+  //  [{
+  //     $lookup: {
+  //         from: 'restaurants',
+  //         localField: 'restaurant',
+  //         foreignField: '_id',
+  //         as: 'inventory_docs'
+  //       }
+  //     },{ $project: { 
   //       description: { $concat: [ "$name", " ", "$ingredients" ] }, 
-  //       categories: "$categories" 
+  //       categ: "$categories",
+  //       inventory_docs: "$inventory_docs"
   //     } },
   //     {$match:{
   //     $and: [
@@ -84,31 +102,49 @@ normalSearchUseDescription = (searchString, foodType) => {
   //     ]}}
   //  ]
   // )
-  // db.dishes.aggregate(
-  //  [
-  //     { $project: { 
-  //       description: { $concat: [ "$name", " ", "$ingredients" ] }, 
-  //       categories: "$categories"
-  //     } },
-
-  //  ]
-  // )
 
   let query = [];
-  query[0] = {}; 
-  query[0]['$project'] = {};
-  query[0]['$project']['description'] = {};
-  query[0]['$project']['description']['$concat'] = [];
-  query[0]['$project']['description']['$concat'][0] = '$name' ;
-  query[0]['$project']['description']['$concat'][1] = " ";
-  query[0]['$project']['description']['$concat'][2] = '$ingredients';
-  query[0]['$project']['categories'] = '$categories';
+  query[0] = {};
+  query[0]['$lookup'] = {};
+  query[0]['$lookup']['from'] = 'restaurants';
+  query[0]['$lookup']['localField'] = 'restaurant';
+  query[0]['$lookup']['foreignField'] = '_id';
+  query[0]['$lookup']['as'] = 'restaurant';
 
-  query[1] = {};
-  query[1]['$match'] = {};
-  query[1]['$match']['$and'] = [];
-  query[1]['$match']['$and'][0] = {};
-  query[1]['$match']['$and'][0]['$or'] = [];
+  query[1] = {}; 
+  query[1]['$project'] = {};
+  query[1]['$project']['description'] = {};
+  query[1]['$project']['description']['$concat'] = [];
+  query[1]['$project']['description']['$concat'][0] = '$name' ;
+  query[1]['$project']['description']['$concat'][1] = " ";
+  query[1]['$project']['description']['$concat'][2] = '$ingredients';
+  query[1]['$project']['description']['$concat'][3] = ' ';
+  if(!foodType){
+    foodType = categoryUtil.convertCategories("searchString");
+    if(foodType){
+        query[1]['$project']['description']['$concat'][4] = categoryUtil.reconvertCategories(foodType); 
+    }
+  }
+  query[1]['$project']['name'] = '$name';
+  query[1]['$project']['price'] = '$price';
+  query[1]['$project']['ingredients'] = '$ingredients';
+  query[1]['$project']['categories'] = '$categories';
+  query[1]['$project']['restaurant'] = '$restaurant';
+
+  let queryIndex = 0;
+  query[2] = {};
+  query[2]['$match'] = {};
+  query[2]['$match']['$and'] = [];
+
+  if(foodType){
+    let newFilterForCategory = {};
+    newFilterForCategory['categories'] = foodType;
+    query[2]['$match']['$and'][queryIndex] = newFilterForCategory;
+    queryIndex++;
+  }
+  
+  query[2]['$match']['$and'][queryIndex] = {};
+  query[2]['$match']['$and'][queryIndex]['$or'] = [];
 
   // ANTIPASTO bruschetta => 
   var fragments = searchString.trim().split(" ");
@@ -118,27 +154,25 @@ normalSearchUseDescription = (searchString, foodType) => {
       newFilterForDescription['description'] = {};
       newFilterForDescription['description']['$regex'] = ".*" + fragment + ".*";
       newFilterForDescription['description']['$options'] = "i";
-      query[1]['$match']['$and'][0]['$or'].push(newFilterForDescription);
+      query[2]['$match']['$and'][queryIndex]['$or'].push(newFilterForDescription);
     }
   });
 
-  if(foodType){
-    let newFilterForCategory = {};
-    newFilterForCategory['categories'] = foodType;
-    query[1]['$match']['$and'][1] = newFilterForCategory;
-  }
-  let idArray = [];
-  return new Promise((resolve, rejected) => {
-    Dish.aggregate(query).exec().then((dishes)=> {
-    dishes.forEach((dish)=>{
-      idArray.push(dish._id);
-    });
-    let newQuery = {};
-    newQuery['_id'] = {};
-    newQuery['_id']['$in'] = idArray;
-      resolve(Dish.find(newQuery).populate('restaurant').exec());
-    }) 
-  })
+
+  return new Promise ((resolve, reject) => {
+    resolve(Dish.aggregate(query).exec());
+  });
+  // return new Promise((resolve, reject) => {
+  //   Dish.aggregate(query).exec().then((dishes)=> {
+  //   dishes.forEach((dish)=>{
+  //     idArray.push(dish._id);
+  //   });
+  //   let newQuery = {};
+  //   newQuery['_id'] = {};
+  //   newQuery['_id']['$in'] = idArray;
+  //     resolve(Dish.find(newQuery).populate('restaurant').exec());
+  //   }) 
+  // })
 }
 
 classifySearch = (searchString) => {
@@ -186,16 +220,22 @@ classifySearch = (searchString) => {
           preciseSearchString.push(subString);
         }
       }
+      for(let i = 0; i < preciseSearchString.length; i++) {
+        searchString = searchString.replace(preciseSearchString[i], '');
+      }
+      searchString = searchString.replace(/[^A-Z0-9]+/ig, " ").trim();
+
       preciseSearchString.forEach((smallString)=> {
         // let fragment = smallString.trim().split(" ");
         // fragment.forEach((smallFragment) => {
         //   fragments.push(smallFragment);
         // });
+        if(smallString.trim() != "")
         fragments.push(smallString.trim());
       })
 
       return new Promise ((resolve, reject)=> {
-       resolve(preciseSearch(fragments, foodType));
+       resolve(preciseSearch(fragments, foodType, searchString));
       })
       
     }else{
@@ -210,54 +250,94 @@ classifySearch = (searchString) => {
   // }
 }
 
-preciseSearch = (fragments, foodType) => {
-
+preciseSearch = (preciseFragments, foodType, searchString) => {
+  if(preciseFragments.length == 0){
+    if(searchString){
+      return normalSearchUseDescription(searchString, foodType);
+    }
+    if(foodType){
+     return getAllDishesOfSpecificCategory(foodType);
+    }
+    return getAllDishes();
+  }
   let query = [];
-  query[0] = {}; 
-  query[0]['$project'] = {};
-  query[0]['$project']['description'] = {};
-  query[0]['$project']['description']['$concat'] = [];
-  query[0]['$project']['description']['$concat'][0] = '$name' ;
-  query[0]['$project']['description']['$concat'][1] = " ";
-  query[0]['$project']['description']['$concat'][2] = '$ingredients';
+  query[0] = {};
+  query[0]['$lookup'] = {};
+  query[0]['$lookup']['from'] = 'restaurants';
+  query[0]['$lookup']['localField'] = 'restaurant';
+  query[0]['$lookup']['foreignField'] = '_id';
+  query[0]['$lookup']['as'] = 'restaurant';
 
-  query[1] = {};
-  query[1]['$match'] = {};
-  query[1]['$match']['$or'] = [];
-  query[1]['$match']['$or'][0] = {};
-  query[1]['$match']['$or'][0]['$and'] = [];
+  query[1] = {}; 
+  query[1]['$project'] = {};
+  query[1]['$project']['description'] = {};
+  query[1]['$project']['description']['$concat'] = [];
+  query[1]['$project']['description']['$concat'][0] = '$name' ;
+  query[1]['$project']['description']['$concat'][1] = " ";
+  query[1]['$project']['description']['$concat'][2] = '$ingredients';
+  query[1]['$project']['description']['$concat'][3] = ' ';
+  query[1]['$project']['description']['$concat'][4] = categoryUtil.reconvertCategories(foodType);
 
-  // ANTIPASTO bruschetta => 
-  // let fragments = searchString.trim().split(" ");
-  fragments.forEach((fragment) => {
-    if(fragment.trim()){
-      console.log(fragment);
+  query[1]['$project']['name'] = '$name';
+  query[1]['$project']['price'] = '$price';
+  query[1]['$project']['ingredients'] = '$ingredients';
+  query[1]['$project']['categories'] = '$categories';
+  query[1]['$project']['restaurant'] = '$restaurant';
+
+  query[2] = {};
+  query[2]['$match'] = {};
+  query[2]['$match']['$or'] = [];
+  query[2]['$match']['$or'][0] = {};
+  query[2]['$match']['$or'][0]['$and'] = [];
+
+
+  if(foodType){
+    let newFilterForCategory = {};
+    newFilterForCategory['categories'] = foodType;
+    query[2]['$match']['$or'][0]['$and'].push(newFilterForCategory);
+  }
+
+
+  preciseFragments.forEach((preciseFragment) => {
+    if(preciseFragment.trim() != ""){
       let newFilterForDescription = {};
       newFilterForDescription['description'] = {};
-      newFilterForDescription['description']['$regex'] = ".*" + fragment + ".*";
+      newFilterForDescription['description']['$regex'] = ".*" + preciseFragment + ".*";
       newFilterForDescription['description']['$options'] = "i";
-      query[1]['$match']['$or'][0]['$and'].push(newFilterForDescription);
+      query[2]['$match']['$or'][0]['$and'].push(newFilterForDescription);
     }
   });
 
-  let idArray = [];
-  return new Promise((resolve, rejected) => {
-    Dish.aggregate(query).exec().then((dishes)=> {
-    dishes.forEach((dish)=>{
-      idArray.push(dish._id);
-
-    });
-    let newQuery = {};
-    newQuery['_id'] = {};
-    newQuery['_id']['$in'] = idArray;
-      resolve(Dish.find(newQuery).populate('restaurant').exec());
-    }) 
-  })
+  if(searchString){
+    var searchFragments = searchString.trim().split(" ");
+    if(searchString.trim() != ""){
+      query[2]['$match']['$or'][1] = {};
+      query[2]['$match']['$or'][1]['$and'] = [];
+      searchFragments.forEach((searchFragment) => {
+        if(searchFragment.trim() != ""){
+          let newFilterForDescription = {};
+          newFilterForDescription['description'] = {};
+          newFilterForDescription['description']['$regex'] = ".*" + searchFragment + ".*";
+          newFilterForDescription['description']['$options'] = "i";
+          query[2]['$match']['$or'][1]['$and'].push(newFilterForDescription);
+        }
+      });
+    }
+  }
+  return new Promise ((resolve, reject) => {
+    resolve(Dish.aggregate(query).exec());
+  });
 };
 
 getAllDishes = () =>{
   return new Promise ((resolve, reject)=> {
    resolve(Dish.find().populate('restaurant').exec());
+  })
+}
+
+getAllDishesOfSpecificCategory = (category) => {
+  return new Promise ((resolve, reject)=> {
+   resolve(Dish.find({categories: category}).populate('restaurant').exec());
   })
 }
 

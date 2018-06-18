@@ -98,6 +98,10 @@ class DishCrawler extends React.Component{
       fetch(`/api/dishes?searchString=${searchString}`, {method: 'GET'} )
       .then(res => { console.log(res);return res.json()})
       .then(json => { 
+        if(json) for(let i=0; i< json.length; i++){
+          if(json[i].restaurant.constructor === Array )
+            if(json[i].restaurant.length >=1) json[i].restaurant = json[i].restaurant[0];
+        }
         this.setState({
           dishes : json,
         });
