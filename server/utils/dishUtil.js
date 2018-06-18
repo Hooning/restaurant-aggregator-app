@@ -11,7 +11,7 @@ module.exports = {
         })
     },
 
-    insertDishes: (json, id) => {
+    upsertDishes: (json, id) => {
         // validation
         if(id && !Array.isArray(json)){
             json.restaurant = id;
@@ -21,37 +21,40 @@ module.exports = {
                 if(id){
                     dish.restaurant = id;                    
                 }
-            })
+            });
         }
         // main
         return new Promise((resolve, rejected) => {
+            
             var DishSchema = require('mongoose').model('Dish').schema;
             const Dish = mongoose.model('Dish', DishSchema);
             var dishes = json;
-            resolve(Dish.collection.insert(dishes, onInsert));
-            function onInsert(err, docs) {
+            var upsertCnt = 0;
+
+            const options = {
+                upsert: true,
+                multi: true
+            }
+
+            resolve(
+            dishes.forEach((dish) => {
+                var check = {
+                    "name": dish.name,
+                    "restaurant": dish.restaurant
+                }
+
+                Dish.collection.findOneAndUpdate(check, dish, options, onUpsert);
+                upsertCnt += 1;
+            }));
+            
+            console.info('%d dishes were successfully upserted.', upsertCnt);
+            
+            function onUpsert(err, docs) {
                 if (err) {
-                    // TODO: handle error
-                    rejected(console.log('# Error occured during insert : ' + err));
-                } else {
-                    if( Array.isArray(json) ){
-                        console.info('%d dishes were successfully stored.', json.length);
-                    }else{
-                        console.info('One dish was successfully stored.');
-                    }
+                    rejected(console.log('# Error occured during upsert : ' + err));
                 }
             }
         });
-    },
-
-    getRestaurantId: (string) =>{
-        let query = {
-            'name': string
-        }
-        return Restaurant.findOne(query).exec();
-        // return new Promise ((resolve, reject) => {
-        //     resolve (Restaurant.findOne(query).exec()); 
-        // });
     },
 
     deleteDish: (json) => {

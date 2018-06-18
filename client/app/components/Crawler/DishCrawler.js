@@ -27,6 +27,18 @@ import {
 } from 'reactstrap';
 import validator from 'validator';
 
+import Background from '../../images/blog-07.jpg';
+
+const divStyle = {
+    width: "100%",
+    height: "500px",
+    backgroundImage: `url( ${Background} )`,
+    backgroundSize: "cover",
+    backgroundPosition: "right top",
+    backgroundRepeat: "no-repeat",
+    position: "relative"
+}
+
 class DishCrawler extends React.Component{
   constructor(props) {
     super(props);
@@ -35,50 +47,6 @@ class DishCrawler extends React.Component{
       query: {},
       dishes: [],
     }
-  }
-
-  getDishes() {
-    this.setState({
-      dishes: [],
-    });
-
-    var data = document.getElementById('query');
-
-    if( !validator.isJSON(data.value) && !validator.isEmpty(data.value)){
-      alert("Invalid JSON format");
-      data.value = "";
-      data.focus();
-      return;
-    }
-
-    if( validator.isEmpty(data.value) ){
-      this.query = data.value;
-
-      fetch(`/api/dishes`, {method: 'GET'} )
-      .then(res => res.json())
-      .then(json => {
-        console.log( json );
-        
-        this.setState({
-          dishes : json,
-        });
-      });
-
-    }else{
-      var params = JSON.parse(data.value);
-      var esc = encodeURIComponent;
-      this.query = Object.keys(params)
-          .map(k => esc(k) + '=' + esc(params[k]))
-          .join('&');
-
-      fetch(`/api/dishes?${this.query}`, {method: 'GET'} )
-      .then(res => res.json())
-      .then(json => { 
-        this.setState({
-          dishes : json,
-        });
-      });
-    }    
   }
 
   crawlDishes(){
@@ -123,72 +91,29 @@ class DishCrawler extends React.Component{
     });
   }
 
-  deleteDish(index) {
-    const id = this.state.dishes[index]._id;
-    let prevData = this.state.dishes;
-    
-    fetch(`/api/dishes/${id}`, { method: 'DELETE'})
-      .then(res => res.json())
-      .then(json => {
-        prevData.splice(index, 1);
-
-        this.setState({
-          dishes: prevData
-        })
-      });
-  }
-
   render(){
     return(
       <React.Fragment>
-      <div>
-        <p>Crawler Test</p>
-        <Table>
+      <div style={divStyle}>
+      <p className="tit3 t-center p-t-10">Dish Crawler</p>
+        <Table className="dishes">
           <tbody>
             <tr>
               <td>
               <Form>
                 <FormGroup>
-                  <Label for="query"> Search Dishes</Label>
-                  <Input type="text" name="query" id="query" placeholder="Input search query for mongodb" />
+                  <Label for="crawler" className="txt20"> Crawl Dishes</Label>
                 </FormGroup>
               </Form>
-              <Button color="primary" size="sm" onClick={() => this.getDishes()}>Get Dishes</Button>{' '}
-              </td>
-            </tr>          
-          </tbody>
-        </Table>
-      </div>
-      <Table size="sm">
-        <thead>
-        <tr>
-          <th>Restaurant</th><th>Categorie</th><th>Dish Name</th><th>Ingredients</th><th>Price</th><th>Action</th>
-        </tr>
-        </thead>
-        <tbody>
-        {this.state.dishes.map((dish, i) => (
-          <tr key={dish._id}>
-              <td>{dish.restaurant.name}</td><td>{dish.categories}</td><td>{dish.name}</td><td>{dish.ingredients}</td><td>{dish.price.currency}{' '}{dish.price.value}</td>
-              <td>
-                <Button outline color="danger" size="sm" onClick={() => this.deleteDish(i)}>Delete</Button>{' '}  
-              </td>
-          </tr>
-        ))}
-        </tbody>
-      </Table>
-      <div>
-        <Table>
-          <tbody>
-            <tr>
-              <td>
+              <Button color="danger" size="sm" onClick={() => this.crawlDishes()}>Crawl Dishes</Button>{' '}
               <Form>
                 <FormGroup>
-                  <Label for="dishes"> Input Dishes</Label>
+                  <Label for="manual" className="txt20 p-t-40"> Input Dishes</Label>
                   <Input type="textarea" name="dishes" id="dishes" placeholder="Input insert query for mongodb" />
                 </FormGroup>
               </Form>
-              <Button color="secondary" size="sm" onClick={() => this.newDishes()}>New Dishes</Button>{' '}
-              <Button color="secondary" size="sm" onClick={() => this.crawlDishes()}>Crawl Dishes</Button>{' '}
+              <Button color="primary" size="sm" onClick={() => this.newDishes()}>New Dishes</Button>{' '}
+              
               </td>
             </tr>
           </tbody>

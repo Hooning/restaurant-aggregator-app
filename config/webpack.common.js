@@ -46,7 +46,7 @@ module.exports = {
             {
               loader: 'css-loader',
               options: {
-                'sourceMap': false,
+                'sourceMap': true,
                 'importLoaders': 1
               }
             },
@@ -62,17 +62,13 @@ module.exports = {
           ]
         })
       },
-
-      // CSS files
-      {
-        test: /\.css$/,
-        loader: ExtractTextPlugin.extract({
-          //fallback: 'style-loader',
-          use: [
-            {loader: 'css-loader'},
-            {loader: 'style-loader'}
-          ]
-        })
+      { 
+        test: /(\.css$)/, 
+        use: ['style-loader','css-loader']
+      },
+      { 
+        test: /\.(jpg|png|gif|woff|woff2|eot|ttf|svg|truetype|embedded-opentype)$/, 
+        loader: 'url-loader?limit=100000' 
       }
     ]
   },
