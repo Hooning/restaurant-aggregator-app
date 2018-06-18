@@ -8,6 +8,10 @@ removeAllSymbolFromString = (str) => {
   return str.replace(/[^a-zA-Z ]/g, "");
 }
 
+getExcludeRegex = (str) => {
+  return "^((?!"+str +").)*$";
+}
+
 getQueryFromString = (searchString, recordName) => {
   let queryPath = {};
   query[recordName] = '/'+searchString+'/i';
@@ -63,32 +67,25 @@ normalSearch = (searchString) => {
   })
 };
 
-normalSearchUseDescription = (searchString, foodType) => {
+normalSearchUseDescription = (searchString, foodType, withoutFragments) => {
   if(!searchString){
     if(foodType){
-     return getAllDishesOfSpecificCategory(foodType);
+     return getAllDishesOfSpecificCategory(foodType, withoutFragments);
     }
     return getAllDishes();
   }
   if(searchString.trim() == ""){
     if(foodType){
-     return getAllDishesOfSpecificCategory(foodType);
+     return getAllDishesOfSpecificCategory(foodType, withoutFragments);
     }
     return getAllDishes();
   }
 
   // mongodb query use lookup
   // db.dishes.aggregate(
-  //  [{
-  //     $lookup: {
-  //         from: 'restaurants',
-  //         localField: 'restaurant',
-  //         foreignField: '_id',
-  //         as: 'inventory_docs'
-  //       }
-  //     },{ $project: { 
+  //  [{ $project: { 
   //       description: { $concat: [ "$name", " ", "$ingredients" ] }, 
-  //       categ: "$categories",
+  //       categories: "$categories",
   //       inventory_docs: "$inventory_docs"
   //     } },
   //     {$match:{
@@ -98,10 +95,12 @@ normalSearchUseDescription = (searchString, foodType) => {
   //             {'description': {'$regex': ".*basil.*", $options: 'i'}},
   //             {'description': {'$regex': ".*TRIPPA.*", $options: 'i'}}
   //         ]},
-  //             {'categories': 'Pasta'}
+  //         {'description': {'$regex': "^((?!basil).)*$", $options: 'i'}},
+  //         {'categories': 'Pasta'}
   //     ]}}
   //  ]
   // )
+  
 
   let query = [];
   query[0] = {};
@@ -157,22 +156,20 @@ normalSearchUseDescription = (searchString, foodType) => {
       query[2]['$match']['$and'][queryIndex]['$or'].push(newFilterForDescription);
     }
   });
-
+  if(withoutFragments.length >0){
+    withoutFragments.forEach((wfragment) => {
+      ++queryIndex;
+      let newFilterForDescription = {};
+      newFilterForDescription['description'] = {};
+      newFilterForDescription['description']['$regex'] = getExcludeRegex(wfragment.trim());
+      newFilterForDescription['description']['$options'] = "i";
+      query[2]['$match']['$and'][queryIndex] = newFilterForDescription;
+    })
+  }
 
   return new Promise ((resolve, reject) => {
     resolve(Dish.aggregate(query).exec());
   });
-  // return new Promise((resolve, reject) => {
-  //   Dish.aggregate(query).exec().then((dishes)=> {
-  //   dishes.forEach((dish)=>{
-  //     idArray.push(dish._id);
-  //   });
-  //   let newQuery = {};
-  //   newQuery['_id'] = {};
-  //   newQuery['_id']['$in'] = idArray;
-  //     resolve(Dish.find(newQuery).populate('restaurant').exec());
-  //   }) 
-  // })
 }
 
 classifySearch = (searchString) => {
@@ -184,10 +181,12 @@ classifySearch = (searchString) => {
   }
   let searchType = "";
   let preciseSearchString = [];
-  let fragments = [];
+  let preciseSearchFragments = [];
   let foodType = "";
+  let withoutFragments = [];
+
   if(searchString.includes('type:')){
-    var typeFragments = searchString.trim().split(" ");
+    let typeFragments = searchString.trim().split(" ");
     for(let i = 0; i < typeFragments.length; i++) {
       if (typeFragments[i].includes('type:')){
         if(typeFragments[i].trim() === 'type:'){
@@ -205,58 +204,74 @@ classifySearch = (searchString) => {
     }
   }
 
-  if(searchString.includes('without:')){
-  }
-  if(!searchString.includes('without')){ 
-    if(searchString.includes('"')){
-      let indices = [];
-      for(let i = 0; i < searchString.length; i++) {
-        if (searchString[i] === '"') indices.push(i);
+  if(searchString.includes('without:') || searchString.includes('--')){
+    let index = searchString.includes('without:') ? searchString.indexOf('without:') : searchString.indexOf('--');
+    let withoutString = searchString.substring(index, searchString.length).trim();
+    searchString = searchString.slice(0, index).trim();
+    let startStringIndex = 8;
+    if(withoutString[0] == '-'){
+      startStringIndex = 2;
+    }
+    withoutString = withoutString.slice(startStringIndex, withoutString.length).trim();
+    let tmpWithoutFragments = withoutString.trim().split(" ");
+    for(let i = 0; i < tmpWithoutFragments.length; i++) {
+      if(tmpWithoutFragments[i].trim() != ''){
+        withoutFragments.push(tmpWithoutFragments[i]);
       }
-      for(let i = 0; i < indices.length; i++) {
-        if(indices[i+1]){
-          let subString = searchString.substring(indices[i]+1, indices[i+1]);
-          ++i;
-          preciseSearchString.push(subString);
-        }
-      }
-      for(let i = 0; i < preciseSearchString.length; i++) {
-        searchString = searchString.replace(preciseSearchString[i], '');
-      }
-      searchString = searchString.replace(/[^A-Z0-9]+/ig, " ").trim();
-
-      preciseSearchString.forEach((smallString)=> {
-        // let fragment = smallString.trim().split(" ");
-        // fragment.forEach((smallFragment) => {
-        //   fragments.push(smallFragment);
-        // });
-        if(smallString.trim() != "")
-        fragments.push(smallString.trim());
-      })
-
-      return new Promise ((resolve, reject)=> {
-       resolve(preciseSearch(fragments, foodType, searchString));
-      })
-      
-    }else{
-      return new Promise ((resolve, reject)=> {
-       resolve(normalSearchUseDescription(searchString, foodType));
-      })
-      
     }
   }
+
+  searchString = searchString.replace(/[^a-zA-Z" ]/g, "");
+
+  if(searchString.includes('"')){
+    let indices = [];
+    for(let i = 0; i < searchString.length; i++) {
+      if (searchString[i] === '"') indices.push(i);
+    }
+    for(let i = 0; i < indices.length; i++) {
+      if(indices[i+1]){
+        let subString = searchString.substring(indices[i]+1, indices[i+1]);
+        ++i;
+        preciseSearchString.push(subString);
+      }
+    }
+    for(let i = 0; i < preciseSearchString.length; i++) {
+      searchString = searchString.replace(preciseSearchString[i], '');
+    }
+    searchString = searchString.replace(/[^A-Z0-9]+/ig, " ").trim();
+
+    preciseSearchString.forEach((smallString)=> {
+      // let fragment = smallString.trim().split(" ");
+      // fragment.forEach((smallFragment) => {
+      //   fragments.push(smallFragment);
+      // });
+      if(smallString.trim() != "")
+      preciseSearchFragments.push(smallString.trim());
+    })
+
+    return new Promise ((resolve, reject)=> {
+     resolve(preciseSearch(preciseSearchFragments, foodType, searchString, withoutFragments));
+    })
+    
+  }else{
+    return new Promise ((resolve, reject)=> {
+     resolve(normalSearchUseDescription(searchString, foodType, withoutFragments));
+    })
+    
+  }
+  
   // if(searchType === 'preciseSearch'){
   //   preciseSearch();
   // }
 }
 
-preciseSearch = (preciseFragments, foodType, searchString) => {
+preciseSearch = (preciseFragments, foodType, searchString, withoutFragments) => {
   if(preciseFragments.length == 0){
     if(searchString){
       return normalSearchUseDescription(searchString, foodType);
     }
     if(foodType){
-     return getAllDishesOfSpecificCategory(foodType);
+     return getAllDishesOfSpecificCategory(foodType, withoutFragments);
     }
     return getAllDishes();
   }
@@ -277,6 +292,12 @@ preciseSearch = (preciseFragments, foodType, searchString) => {
   query[1]['$project']['description']['$concat'][2] = '$ingredients';
   query[1]['$project']['description']['$concat'][3] = ' ';
   query[1]['$project']['description']['$concat'][4] = categoryUtil.reconvertCategories(foodType);
+  if(!foodType){
+    foodType = categoryUtil.convertCategories("searchString");
+    if(foodType){
+        query[1]['$project']['description']['$concat'][4] = categoryUtil.reconvertCategories(foodType); 
+    }
+  }
 
   query[1]['$project']['name'] = '$name';
   query[1]['$project']['price'] = '$price';
@@ -308,8 +329,18 @@ preciseSearch = (preciseFragments, foodType, searchString) => {
     }
   });
 
+  if(withoutFragments.length >0){
+    withoutFragments.forEach((wfragment) => {
+      let newFilterForDescription = {};
+      newFilterForDescription['description'] = {};
+      newFilterForDescription['description']['$regex'] = getExcludeRegex(wfragment.trim());
+      newFilterForDescription['description']['$options'] = "i";
+      query[2]['$match']['$or'][0]['$and'].push(newFilterForDescription);
+    })
+  }
+
   if(searchString){
-    var searchFragments = searchString.trim().split(" ");
+    let searchFragments = searchString.trim().split(" ");
     if(searchString.trim() != ""){
       query[2]['$match']['$or'][1] = {};
       query[2]['$match']['$or'][1]['$and'] = [];
@@ -335,21 +366,66 @@ getAllDishes = () =>{
   })
 }
 
-getAllDishesOfSpecificCategory = (category) => {
-  return new Promise ((resolve, reject)=> {
-   resolve(Dish.find({categories: category}).populate('restaurant').exec());
-  })
+getAllDishesOfSpecificCategory = (category, withoutFragments) => {
+  let query = [];
+  query[0] = {};
+  query[0]['$lookup'] = {};
+  query[0]['$lookup']['from'] = 'restaurants';
+  query[0]['$lookup']['localField'] = 'restaurant';
+  query[0]['$lookup']['foreignField'] = '_id';
+  query[0]['$lookup']['as'] = 'restaurant';
+
+  query[1] = {}; 
+  query[1]['$project'] = {};
+  query[1]['$project']['description'] = {};
+  query[1]['$project']['description']['$concat'] = [];
+  query[1]['$project']['description']['$concat'][0] = '$name' ;
+  query[1]['$project']['description']['$concat'][1] = " ";
+  query[1]['$project']['description']['$concat'][2] = '$ingredients';
+  query[1]['$project']['description']['$concat'][3] = ' ' + category;
+  query[1]['$project']['name'] = '$name';
+  query[1]['$project']['price'] = '$price';
+  query[1]['$project']['ingredients'] = '$ingredients';
+  query[1]['$project']['categories'] = '$categories';
+  query[1]['$project']['restaurant'] = '$restaurant';
+
+  let queryIndex = 0;
+  query[2] = {};
+  query[2]['$match'] = {};
+  query[2]['$match']['$and'] = []; 
+
+  if(category){
+    let newFilterForCategory = {};
+    newFilterForCategory['categories'] = category;
+    query[2]['$match']['$and'][queryIndex] = newFilterForCategory;
+  }
+
+  if(withoutFragments.length > 0){
+    withoutFragments.forEach((wfragment) => {
+      ++queryIndex;
+      let newFilterForDescription = {};
+      newFilterForDescription['description'] = {};
+      newFilterForDescription['description']['$regex'] = getExcludeRegex(wfragment.trim());
+      newFilterForDescription['description']['$options'] = "i";
+      query[2]['$match']['$and'][queryIndex] = newFilterForDescription;
+    })
+  }
+  // console.log(JSON.stringify(query));
+
+  return new Promise ((resolve, reject) => {
+    resolve(Dish.aggregate(query).exec());
+  });
 }
 
 module.exports = {
 
-searchDishes : (query) => {
-  return new Promise ((resolve, reject)=> {
-   resolve(classifySearch(query));
-  })
-},
+  searchDishes : (query) => {
+    return new Promise ((resolve, reject)=> {
+     resolve(classifySearch(query));
+    })
+  },
 
-insertDishes: (json, id) => {
+  insertDishes: (json, id) => {
     // validation
     if(id && !Array.isArray(json)){
       json.restaurant = id;
