@@ -59,12 +59,7 @@ class Dishes extends React.Component{
 
     var data = document.getElementById('query');
 
-    if( !validator.isJSON(data.value) && !validator.isEmpty(data.value)){
-      alert("Invalid JSON format");
-      data.value = "";
-      data.focus();
-      return;
-    }
+    console.log("## data : " + data.value);
 
     if( validator.isEmpty(data.value) ){
       this.query = data.value;
@@ -80,19 +75,26 @@ class Dishes extends React.Component{
       });
 
     }else{
-      var params = JSON.parse(data.value);
-      var esc = encodeURIComponent;
-      this.query = Object.keys(params)
-          .map(k => esc(k) + '=' + esc(params[k]))
-          .join('&');
+      //var params = JSON.parse(data.value);
+      // var esc = encodeURIComponent;
+      // this.query = Object.keys(params)
+      //     .map(k => esc(k) + '=' + esc(params[k]))
+      //     .join('&');
+      //this.query = {"searchString": data.value};      
 
-      fetch(`/api/dishes?${this.query}`, {method: 'GET'} )
+      fetch(`/api/dishes?searchString=${data.value}`, {method: 'GET'} )
       .then(res => res.json())
       .then(json => { 
+
+        if(json) for(let i=0; i< json.length; i++){
+          if(json[i].restaurant.constructor === Array )
+            if(json[i].restaurant.length >=1) json[i].restaurant = json[i].restaurant[0];
+        }
+
         this.setState({
           dishes : json,
         });
-      });
+      }).catch(err => console.log(err));
     }    
   }
 
@@ -122,13 +124,9 @@ class Dishes extends React.Component{
               <td>
               <Form>
                 <FormGroup>
-                  <Label for="name" className="txt20"> Dish name</Label>
+                  <Label for="name" className="txt20"> Search </Label>
                   <Input type="text" name="query" id="query" placeholder="Input dish name" />
-                </FormGroup>
-                <FormGroup>
-                  <Label for="ingredients" className="txt20"> Ingredients</Label>
-                  <Input type="text" name="query" id="query" placeholder="Input ingredient name" />
-                </FormGroup>
+                </FormGroup>        
               </Form>
               </td>
             </tr>

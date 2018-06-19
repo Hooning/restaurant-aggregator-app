@@ -104,7 +104,7 @@ function pizzeriailfico($){
 }
 
 function maccheronirepublic($){
-  fs.writeFile("./maccheronirepublic.html", $(".menu"));
+  // fs.writeFile("./maccheronirepublic.html", $(".menu"));
 
   let fullMenu = {};
   let Categories = $(".menu").find('.header-menu-inner');
