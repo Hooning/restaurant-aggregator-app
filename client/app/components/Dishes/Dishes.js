@@ -93,6 +93,7 @@ class Dishes extends React.Component{
     this.state = {
       query: {},
       dishes: [],
+      filteredDishes: [],
       price: { 
         min: 5, 
         max:50
@@ -106,14 +107,15 @@ class Dishes extends React.Component{
         'MainCourse': false,
         'Dessert': false
       },
-      ingredients: '',
+      ingredients: ''
+
     }
 
     this.slideStateChange = this.slideStateChange.bind(this);
     this.checkFilters = this.checkFilters.bind(this);
+    this.resetFilters = this.resetFilters.bind(this);
     this.checkboxToggle = this.checkboxToggle.bind(this);
     this.filterIngredients = this.filterIngredients.bind(this);
-
   }
 
   filterToggle() {
@@ -125,7 +127,6 @@ class Dishes extends React.Component{
   }
 
   slideStateChange(event) {
-
     let price = Object.assign({}, this.state.price);    //creating copy of object
     price.min = event[0];
     price.max = event[1];
@@ -155,42 +156,53 @@ class Dishes extends React.Component{
     }
 
     this.setState({categories});
-   
   }
 
   filterIngredients(event){
+    let filteredDishes = this.state.dishes;
     let ingredients = Object.assign({}, this.state.ingredients);
     ingredients = event.target.value;
 
-    this.setState({ingredients});
+    // let filteredDishes = this.state.dishes;
+    this.setState({filteredDishes,ingredients}, function(){
+      
+      let filteredDishesResult = this.state.filteredDishes;
+      let filterString = this.state.ingredients;
+      filteredDishesResult = filteredDishesResult.filter((dish)=>{
+        return dish.ingredients.includes(filterString);
+        }
+      );
+      // console.log(filteredDishesResult.length);
+    this.setState({filteredDishes:filteredDishesResult});
+    });
   }
 
   checkFilters(event){
-
-    console.log('Min Price : ' + this.state.price.min);
-    console.log('Max Price : ' + this.state.price.max);
-    console.log('categories : ' + JSON.stringify(this.state.categories));
-    console.log('ingredients : ' + this.state.ingredients);
-
-    var selectedCategories = [];
-    var categories = this.state.categories;
-    for(var category in categories) {
-      if( categories[category] ){
-        selectedCategories.push(category);
-      }      
-    }
-
-    let minPrice = this.state.price.min;
-    let maxPrice = this.state.price.max;
-    
-    //let dishes = Object.assign({}, this.state.dishes);
     let filteredDishes = this.state.dishes;
+    this.setState({filteredDishes}, function(){
+      // console.log('Min Price : ' + this.state.price.min);
+      // console.log('Max Price : ' + this.state.price.max);
+      // console.log('categories : ' + JSON.stringify(this.state.categories));
+      // console.log('ingredients : ' + this.state.ingredients);
+      var selectedCategories = [];
+      var categories = this.state.categories;
+      for(var category in categories) {
+        if( categories[category] ){
+          selectedCategories.push(category);
+        }      
+      }
 
-    filteredDishes = filteredDishes.filter(function (el) {
+      let minPrice = this.state.price.min;
+      let maxPrice = this.state.price.max;
       
-      console.log("selectedCategories : [" + selectedCategories + "]");
-      console.log("el.categories : [" + el.categories.trim() + "]");
-      console.log(selectedCategories.indexOf(el.categories.trim()));
+      //let dishes = Object.assign({}, this.state.dishes);
+      let filteredDishesResult = this.state.filteredDishes;
+
+      filteredDishesResult = filteredDishesResult.filter(function (el) {
+      
+      // console.log("selectedCategories : [" + selectedCategories + "]");
+      // console.log("el.categories : [" + el.categories.trim() + "]");
+      // console.log(selectedCategories.indexOf(el.categories.trim()));
 
       if( selectedCategories.length < 1){
         return ( el.price.value >= minPrice &&
@@ -203,10 +215,57 @@ class Dishes extends React.Component{
 
     });
 
-    //console.log(JSON.stringify(filteredDishes));
+    this.setState({filteredDishes:filteredDishesResult});
+    });
+  }
 
-    this.setState({dishes:filteredDishes});
+  resetFilters(event){
+    //reset categories choices
+    let categoriesId = ['appetizer', 'salad', 'pizza', 'pasta', 'sandwich', 'mainCourse', 'dessert'];
+    categoriesId.forEach((id)=>{
+      if(document.getElementById(id))
+      document.getElementById(id).checked = false;
+    })
 
+    let categories = {
+        'Appetizer': false,
+        'Salad': false,
+        'Pizza': false,
+        'Pasta': false,
+        'Sandwich': false,
+        'MainCourse': false,
+        'Dessert': false
+    }
+
+    //reset price renge
+    let price = Object.assign({}, this.state.price);    //creating copy of object
+    price.min = 5;
+    price.max = 50;
+
+    let slider = document.getElementsByClassName('rc-slider-track rc-slider-track-1');
+    if(slider.length >=1){
+      slider[0].style.left = '5%';
+      slider[0].style.width = '45%';
+    }
+
+    let priceRange1 = document.getElementsByClassName('rc-slider-handle rc-slider-handle-1');
+    if(priceRange1.length >=1){
+      priceRange1[0].style.left = '5%';
+    }
+
+    let priceRange2 = document.getElementsByClassName('rc-slider-handle rc-slider-handle-2');
+    if(priceRange2.length >=1){
+      priceRange2[0].style.left = '50%';
+    }
+
+    //reset ingredients
+    let ingredients = Object.assign({}, this.state.ingredients);
+    ingredients = event.target.value;
+    document.getElementById('ingredientsSearch').value ='';
+
+    //reset filtered Dishes
+    let filteredDishes = this.state.dishes;
+    this.setState({filteredDishes, categories, price, ingredients});
   }
 
   inPriceRange(dishes){
@@ -220,6 +279,7 @@ class Dishes extends React.Component{
   getDishes() {
     this.setState({
       dishes: [],
+      filteredDishes:[]
     });
 
     var data = document.getElementById('query');
@@ -234,17 +294,11 @@ class Dishes extends React.Component{
         
         this.setState({
           dishes : json,
+          filteredDishes : json
         });
       });
 
-    }else{
-      //var params = JSON.parse(data.value);
-      // var esc = encodeURIComponent;
-      // this.query = Object.keys(params)
-      //     .map(k => esc(k) + '=' + esc(params[k]))
-      //     .join('&');
-      //this.query = {"searchString": data.value};      
-
+    }else{    
       fetch(`/api/dishes?searchString=${data.value}`, {method: 'GET'} )
       .then(res => res.json())
       .then(json => { 
@@ -256,6 +310,7 @@ class Dishes extends React.Component{
 
         this.setState({
           dishes : json,
+          filteredDishes : json
         });
       }).catch(err => console.log(err));
     }    
@@ -271,7 +326,8 @@ class Dishes extends React.Component{
         prevData.splice(index, 1);
 
         this.setState({
-          dishes: prevData
+          dishes: prevData,
+          filteredDishes : prevData
         })
       });
   }
@@ -316,11 +372,11 @@ class Dishes extends React.Component{
               <p className="txt8">Price ( $ )</p>    
               <li>
                 <div style={wrapperStyle}>
-                  <Range min={0} max={100} defaultValue={[5, 50]} tipFormatter={value => `$${value}`} handle={handle} onChange={this.slideStateChange}/>
+                  <Range  min={0} max={100} defaultValue={[5, 50]} tipFormatter={value => `$${value}`} handle={handle} onChange={this.slideStateChange}/>
                 </div>
               </li>
               <Button className="m-l-30 m-t-10" color="info" size="sm" onClick={this.checkFilters}>Apply</Button>
-              <Button className="m-l-40 m-t-10" color="secondary" size="sm">Reset</Button>
+              <Button className="m-l-40 m-t-10" color="secondary" size="sm" onClick={this.resetFilters}>Reset</Button>
           </ul>
         </nav>
         <div style={divStyle}>
@@ -363,7 +419,7 @@ class Dishes extends React.Component{
               </tr>
               </thead>
               <tbody>
-              {this.state.dishes.map((dish, i) => (
+              {this.state.filteredDishes.map((dish, i) => (
               <tr key={dish._id}>
                   <td>{dish.restaurant.name}</td><td>{dish.categories}</td><td>{dish.name}</td><td>{dish.ingredients}</td><td>{dish.price.currency}{' '}{dish.price.value}</td>
                   {/* <td>
