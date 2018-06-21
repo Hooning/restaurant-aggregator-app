@@ -187,5 +187,7 @@ async.series([
 ]);
 
 module.exports = {
-  htmlCrawler: htmlCrawler
+  htmlCrawler: htmlCrawler,
+  parseSentenceForNumber: parseSentenceForNumber,
+  checkCurrencySymbol: checkCurrencySymbol
 }
