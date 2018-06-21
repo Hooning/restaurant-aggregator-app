@@ -107,8 +107,9 @@ class Dishes extends React.Component{
         'MainCourse': false,
         'Dessert': false
       },
-      ingredients: ''
-
+      ingredients: '',
+      currentPage: 1,
+      dishesPerPage: 10
     }
 
     this.slideStateChange = this.slideStateChange.bind(this);
@@ -116,6 +117,13 @@ class Dishes extends React.Component{
     this.resetFilters = this.resetFilters.bind(this);
     this.checkboxToggle = this.checkboxToggle.bind(this);
     this.filterIngredients = this.filterIngredients.bind(this);
+    this.handleClickOnPage = this.handleClickOnPage.bind(this);
+  }
+
+  handleClickOnPage(event){
+    this.setState({
+      currentPage: Number(event.target.id)
+    });
   }
 
   filterToggle() {
@@ -333,6 +341,38 @@ class Dishes extends React.Component{
   }
 
   render(){
+    // displaying current dishes
+    const {filteredDishes, currentPage, dishesPerPage} = this.state;
+    console.log(filteredDishes.length);
+    const indexOfLastDish = currentPage * dishesPerPage;
+    const indexOfFirstDish = (currentPage - 1) * dishesPerPage;
+    const currentDishes = filteredDishes.slice(indexOfFirstDish, indexOfLastDish);
+    const renderDishes = currentDishes.map((dish, i) => (
+      <tr key={dish._id}>
+          <td>{dish.restaurant.name}</td><td>{dish.categories}</td><td>{dish.name}</td>
+          <td>{dish.ingredients}</td><td>{dish.price.currency}{' '}{dish.price.value}</td>
+      </tr>
+      ));
+    //displaying current pages:
+
+    const pageNumbers = [];
+    for (let i = 1; i <= Math.ceil(filteredDishes.length / dishesPerPage); i++) {
+      pageNumbers.push(i);
+    }
+
+    const renderPageNumbers = pageNumbers.map(number => {
+      return (
+        <PaginationItem> 
+          <PaginationLink 
+          href="#" 
+          key={number}
+          id={number}
+          onClick={this.handleClickOnPage}>{number}
+          </PaginationLink> 
+        </PaginationItem>
+      );
+    });
+
     return(
       <React.Fragment>
       <div className="wrapper">
@@ -419,40 +459,24 @@ class Dishes extends React.Component{
               </tr>
               </thead>
               <tbody>
-              {this.state.filteredDishes.map((dish, i) => (
-              <tr key={dish._id}>
-                  <td>{dish.restaurant.name}</td><td>{dish.categories}</td><td>{dish.name}</td><td>{dish.ingredients}</td><td>{dish.price.currency}{' '}{dish.price.value}</td>
-                  {/* <td>
-                      <Button outline color="danger" size="sm" onClick={() => this.deleteDish(i)}>Delete</Button>{' '}  
-                  </td> */}
-              </tr>
-              ))}
+              {renderDishes}
+                {/*this.state.filteredDishes.map((dish, i) => (
+                <tr key={dish._id}>
+                    <td>{dish.restaurant.name}</td><td>{dish.categories}</td><td>{dish.name}</td><td>{dish.ingredients}</td><td>{dish.price.currency}{' '}{dish.price.value}</td>
+                     <td>
+                        <Button outline color="danger" size="sm" onClick={() => this.deleteDish(i)}>Delete</Button>{' '}  
+                    </td> 
+                </tr>
+                ))*/}
               </tbody>
           </table>
           <div className="p-t-20 p-b-20">
+            
               <Pagination size="sm" aria-label="Page navigation example">
-                  <PaginationItem>
-                  <PaginationLink previous href="#" />
-                  </PaginationItem>
-                  <PaginationItem>
-                  <PaginationLink href="#">
-                      1
-                  </PaginationLink>
-                  </PaginationItem>
-                  <PaginationItem>
-                  <PaginationLink href="#">
-                      2
-                  </PaginationLink>
-                  </PaginationItem>
-                  <PaginationItem>
-                  <PaginationLink href="#">
-                      3
-                  </PaginationLink>
-                  </PaginationItem>
-                  <PaginationItem>
-                  <PaginationLink next href="#" />
-                  </PaginationItem>
-              </Pagination>
+                  <PaginationItem> <PaginationLink previous href="#" /> </PaginationItem>
+                  {renderPageNumbers}
+                  <PaginationItem> <PaginationLink next href="#" /> </PaginationItem>
+              </Pagination> 
           </div>
         </div>
       </div>
