@@ -15,7 +15,7 @@ const Header = () => (
 				</div>
 				<div className="wrap_menu p-l-45 p-l-0-xl">
 					<nav className="menu">
-						<ul className="main_menu">
+						<ul className="main_menu collapse">
 							<li>
 								<Link to="/">Home</Link>
 							</li>
@@ -32,7 +32,7 @@ const Header = () => (
 					</nav>
 				</div>
 				<div className="responsive_menu">
-					<button className="btn-resp-menu p-r-30 m-r-30"></button>
+					<button className="btn-resp-menu p-r-30 m-r-30" data-toggle="collapse"></button>
 				</div>
 
 			</div>
