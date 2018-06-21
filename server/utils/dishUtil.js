@@ -119,10 +119,8 @@ normalSearchUseDescription = (searchString, foodType, withoutFragments) => {
   query[1]['$project']['description']['$concat'][2] = '$ingredients';
   query[1]['$project']['description']['$concat'][3] = ' ';
   if(!foodType){
-    foodType = categoryUtil.convertCategories("searchString");
-    if(foodType){
-        query[1]['$project']['description']['$concat'][4] = categoryUtil.reconvertCategories(foodType); 
-    }
+    foodType = categoryUtil.convertCategories(searchString);
+    query[1]['$project']['description']['$concat'][4] = categoryUtil.reconvertCategories(foodType);     
   }
   query[1]['$project']['name'] = '$name';
   query[1]['$project']['price'] = '$price';
@@ -252,7 +250,6 @@ classifySearch = (searchString) => {
     return new Promise ((resolve, reject)=> {
      resolve(preciseSearch(preciseSearchFragments, foodType, searchString, withoutFragments));
     })
-    
   }else{
     return new Promise ((resolve, reject)=> {
      resolve(normalSearchUseDescription(searchString, foodType, withoutFragments));
@@ -425,47 +422,50 @@ module.exports = {
     })
   },
 
-  insertDishes: (json, id) => {
+  upsertDishes: (json, id) => {
     // validation
     if(id && !Array.isArray(json)){
-      json.restaurant = id;
+        json.restaurant = id;
     }
     if(Array.isArray(json)){
-      json.forEach((dish) => {
-        if(id){
-          dish.restaurant = id;                    
-        }
-      })
+        json.forEach((dish) => {
+            if(id){
+                dish.restaurant = id;                    
+            }
+        });
     }
     // main
     return new Promise((resolve, rejected) => {
-      var DishSchema = require('mongoose').model('Dish').schema;
-      const Dish = mongoose.model('Dish', DishSchema);
-      var dishes = json;
-      resolve(Dish.collection.insert(dishes, onInsert));
-      function onInsert(err, docs) {
-        if (err) {
-          // TODO: handle error
-          rejected(console.log('# Error occured during insert : ' + err));
-        } else {
-          if( Array.isArray(json) ){
-            console.info('%d dishes were successfully stored.', json.length);
-          }else{
-            console.info('One dish was successfully stored.');
-          }
-        }
-      }
-    });
-  },
+        
+        var DishSchema = require('mongoose').model('Dish').schema;
+        const Dish = mongoose.model('Dish', DishSchema);
+        var dishes = json;
+        var upsertCnt = 0;
 
-  getRestaurantId: (string) =>{
-    let query = {
-      'name': string
-    }
-    return Restaurant.findOne(query).exec();
-    // return new Promise ((resolve, reject) => {
-    //     resolve (Restaurant.findOne(query).exec()); 
-    // });
+        const options = {
+            upsert: true,
+            multi: true
+        }
+
+        resolve(
+        dishes.forEach((dish) => {
+            var check = {
+                "name": dish.name,
+                "restaurant": dish.restaurant
+            }
+
+            Dish.collection.findOneAndUpdate(check, dish, options, onUpsert);
+            upsertCnt += 1;
+        }));
+        
+        console.info('%d dishes were successfully upserted.', upsertCnt);
+        
+        function onUpsert(err, docs) {
+            if (err) {
+                rejected(console.log('# Error occured during upsert : ' + err));
+            }
+        }
+    });
   },
 
   deleteDish: (json) => {

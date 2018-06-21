@@ -4,6 +4,7 @@ const cheerio = require('cheerio');
 var async = require("async");
 PDFParser = require("pdf2json");
 const dishUtil = require('../utils/dishUtil.js');
+const restaurantUtil = require('../utils/restaurantUtil.js');
 var constants = require('../utils/constants');
 var convertCategories = require('../utils/categoryUtil.js').convertCategories;
 
@@ -24,16 +25,15 @@ var htmlCrawler = new Crawler({
       // $ is Cheerio by default
       //a lean implementation of core jQuery designed specifically for the server
       if(res.options.uri == pizzeriailficoURI) { 
-        dishUtil.getRestaurantId(constants.RESTAURANT.pizzeriailfico)
+        restaurantUtil.getRestaurantId(constants.RESTAURANT.pizzeriailfico)
           .then((data)=> {
-            console.log(data);
-            dishUtil.insertDishes(pizzeriailfico($), data._id)
+            dishUtil.upsertDishes(pizzeriailfico($), data._id)
           });        
         
       }else if (res.options.uri == maccheronirepublicURI) {
-        dishUtil.getRestaurantId(constants.RESTAURANT.maccheronirepublic)
+        restaurantUtil.getRestaurantId(constants.RESTAURANT.maccheronirepublic)
         .then((data)=> {
-          dishUtil.insertDishes(maccheronirepublic($), data._id)
+          dishUtil.upsertDishes(maccheronirepublic($), data._id)
         });        
       }
     }
@@ -72,7 +72,7 @@ function pizzeriailfico($){
       let dishedName = $(liTags[j]).find('i');
       let ingredients = $(liTags[j]).text().replace(/\s\s+/g, ' ');
       let price = parseSentenceForNumber(ingredients);
-      let currency = checkCurrencySymbol(price) ? constants.DOLLAR : constants.EURO;
+      let currency = checkCurrencySymbol(price) ? constants.EURO : constants.DOLLAR;
       ingredients = ingredients.trim().slice(0, price.length *-1).trim();
       
 
@@ -127,7 +127,7 @@ function maccheronirepublic($){
       if(dishedInfo[1]){
         ingredients = $(dishedInfo[1]).text();
       }
-      let currency = checkCurrencySymbol(price) ? constants.DOLLAR : constants.EURO;
+      let currency = checkCurrencySymbol(price) ? constants.EURO : constants.DOLLAR;
       price = price.slice(1, price.length);
      
       if(name!= ""){
@@ -164,7 +164,7 @@ function parseSentenceForNumber(sentence){
 }
 
 function checkCurrencySymbol(text){
-  var isDollar = /[$]/.test(text.trim());
+  var isDollar = /[€]/.test(text.trim());
   // var isEuro = /[€]/.test(text.trim());
   return isDollar;
 }

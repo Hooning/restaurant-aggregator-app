@@ -7,7 +7,7 @@ const App = ({ children }) => (
   <>
     <Header />
 
-    <main>
+    <main className="bg3">
       {children}
     </main>
 

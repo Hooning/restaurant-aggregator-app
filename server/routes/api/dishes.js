@@ -10,6 +10,8 @@ var cheeboURI = 'https://docs.wixstatic.com/ugd/4875de_caecf0487c5143e09a57202d2
 
 module.exports = (app) => {
   app.get('/api/dishes/', (req, res, next) => {
+    console.log(req.query.searchString);
+
     dishUtil.searchDishes(req.query.searchString)      
       .then((data) => { 
         return res.json(data); 
