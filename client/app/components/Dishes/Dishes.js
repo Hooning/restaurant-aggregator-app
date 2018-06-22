@@ -107,6 +107,7 @@ class Dishes extends React.Component{
         'MainCourse': false,
         'Dessert': false
       },
+      restaurants: [],
       ingredients: '',
       currentPage: 1,
       dishesPerPage: 10
@@ -116,6 +117,7 @@ class Dishes extends React.Component{
     this.checkFilters = this.checkFilters.bind(this);
     this.resetFilters = this.resetFilters.bind(this);
     this.checkboxToggle = this.checkboxToggle.bind(this);
+    this.checkboxFilterToggle = this.checkboxFilterToggle.bind(this);
     this.filterIngredients = this.filterIngredients.bind(this);
     this.handleClickOnPage = this.handleClickOnPage.bind(this);
   }
@@ -166,6 +168,21 @@ class Dishes extends React.Component{
     this.setState({categories});
   }
 
+  checkboxFilterToggle(event){
+
+    let restaurants = this.state.restaurants;
+    let checkedRestaurant = event.target.value;
+
+    if(!restaurants.includes(checkedRestaurant)){
+      restaurants.push(checkedRestaurant);
+    }else{
+      let index = restaurants.indexOf(checkedRestaurant);
+      restaurants.splice(index, 1);
+    }
+
+    this.setState({restaurants});
+  }
+
   filterIngredients(event){
     let filteredDishes = this.state.dishes;
     let ingredients = Object.assign({}, this.state.ingredients);
@@ -188,14 +205,16 @@ class Dishes extends React.Component{
   checkFilters(event){
     let filteredDishes = this.state.dishes;
     this.setState({filteredDishes}, function(){
-      // console.log('Min Price : ' + this.state.price.min);
-      // console.log('Max Price : ' + this.state.price.max);
-      // console.log('categories : ' + JSON.stringify(this.state.categories));
-      // console.log('ingredients : ' + this.state.ingredients);
+      let restaurants = this.state.restaurants;
+
       var selectedCategories = [];
       var categories = this.state.categories;
       for(var category in categories) {
         if( categories[category] ){
+          // MainCourse space issue..
+          if( category == "MainCourse"){
+            category = "Main Course"
+          }
           selectedCategories.push(category);
         }      
       }
@@ -203,27 +222,44 @@ class Dishes extends React.Component{
       let minPrice = this.state.price.min;
       let maxPrice = this.state.price.max;
       
+      let filterString = this.state.ingredients;
+
       //let dishes = Object.assign({}, this.state.dishes);
       let filteredDishesResult = this.state.filteredDishes;
 
       filteredDishesResult = filteredDishesResult.filter(function (el) {
       
-      // console.log("selectedCategories : [" + selectedCategories + "]");
-      // console.log("el.categories : [" + el.categories.trim() + "]");
-      // console.log(selectedCategories.indexOf(el.categories.trim()));
-
-      if( selectedCategories.length < 1){
-        return ( el.price.value >= minPrice &&
+      if( selectedCategories.length < 1 && restaurants.length < 1){
+        return ( el.ingredients.includes(filterString) &&
+                 el.price.value >= minPrice &&
                  el.price.value <= maxPrice );
-      }else{
-        return selectedCategories.indexOf(el.categories.trim()) > -1 &&
+      }
+      
+      if( selectedCategories.length < 1 ){
+        return restaurants.indexOf(el.restaurant.name.trim()) > -1 &&
+               el.ingredients.includes(filterString) &&
                ( el.price.value >= minPrice &&
                el.price.value <= maxPrice );
       }
 
+      if( restaurants.length < 1 ){
+        return selectedCategories.indexOf(el.categories.trim()) > -1 &&
+               el.ingredients.includes(filterString) &&
+               ( el.price.value >= minPrice &&
+               el.price.value <= maxPrice );
+      }
+
+      if( selectedCategories.length > 0 && restaurants.length > 0){
+        return restaurants.indexOf(el.restaurant.name.trim()) > -1 &&
+               selectedCategories.indexOf(el.categories.trim()) > -1 &&
+               el.ingredients.includes(filterString) &&
+               ( el.price.value >= minPrice &&
+                 el.price.value <= maxPrice );
+      }
+
     });
 
-    this.setState({filteredDishes:filteredDishesResult});
+    this.setState({filteredDishes:filteredDishesResult, currentPage: 1});
     });
   }
 
@@ -244,6 +280,20 @@ class Dishes extends React.Component{
         'MainCourse': false,
         'Dessert': false
     }
+
+    let dishes = this.state.dishes;
+    let restaurants = [];
+    for( let i = 0; i < dishes.length; i++){
+      restaurants.push(dishes[i].restaurant.name);
+    }
+    restaurants = restaurants.reduce((x, y) => x.includes(y) ? x : [...x, y], []);
+
+    restaurants.forEach((id)=>{
+      if(document.getElementById(id))
+      document.getElementById(id).checked = false;
+    });
+
+    restaurants = [];
 
     //reset price renge
     let price = Object.assign({}, this.state.price);    //creating copy of object
@@ -273,15 +323,7 @@ class Dishes extends React.Component{
 
     //reset filtered Dishes
     let filteredDishes = this.state.dishes;
-    this.setState({filteredDishes, categories, price, ingredients});
-  }
-
-  inPriceRange(dishes){
-    let minPrice = this.state.price.min;
-    let maxPrice = this.state.price.max;
-    let dishPrice = this.dishes.price.value;
-
-    return minPrice <= dishPrice <= maxPrice;
+    this.setState({filteredDishes, restaurants, categories, price, ingredients});
   }
 
   getDishes() {
@@ -342,7 +384,7 @@ class Dishes extends React.Component{
 
   render(){
     // displaying current dishes
-    const {filteredDishes, currentPage, dishesPerPage} = this.state;
+    const {filteredDishes, currentPage, dishesPerPage, dishes} = this.state;
     console.log(filteredDishes.length);
     const indexOfLastDish = currentPage * dishesPerPage;
     const indexOfFirstDish = (currentPage - 1) * dishesPerPage;
@@ -353,8 +395,8 @@ class Dishes extends React.Component{
           <td>{dish.ingredients}</td><td>{dish.price.currency}{' '}{dish.price.value}</td>
       </tr>
       ));
-    //displaying current pages:
-
+    
+    //displaying current pages
     const pageNumbers = [];
     for (let i = 1; i <= Math.ceil(filteredDishes.length / dishesPerPage); i++) {
       pageNumbers.push(i);
@@ -373,6 +415,22 @@ class Dishes extends React.Component{
       );
     });
 
+    // displaying restaurant filter
+    let restaurants = [];
+    for( let i = 0; i < dishes.length; i++){
+      restaurants.push(dishes[i].restaurant.name);
+    }
+    restaurants = restaurants.reduce((x, y) => x.includes(y) ? x : [...x, y], []);
+
+    const renderRestaurantFilter = restaurants.map((restaurant, i) => {      
+      return (<div key={i} >  
+        <input className="m-l-7" type="checkbox" key={i+10} id={restaurant} value={restaurant} onClick={this.checkboxFilterToggle}></input>
+        <span key={i+20}> </span>
+        <label className="fs-12" key={i+30} htmlFor={restaurant}>{restaurant}</label>
+      </div>  
+      );  
+    });
+
     return(
       <React.Fragment>
       <div className="wrapper">
@@ -382,6 +440,10 @@ class Dishes extends React.Component{
           </div>
 
           <ul className="list-unstyled components">
+              <li>
+                <p className="txt8">Restaurants</p>
+                  {renderRestaurantFilter}
+              </li>
               <li>
                 <p className="txt8">Category</p>
                   <div>
@@ -470,8 +532,7 @@ class Dishes extends React.Component{
                 ))*/}
               </tbody>
           </table>
-          <div className="p-t-20 p-b-20">
-            
+          <div className="p-t-20 p-b-20 flex-c-m">
               <Pagination size="sm" aria-label="Page navigation example">
                   <PaginationItem> <PaginationLink previous href="#" /> </PaginationItem>
                   {renderPageNumbers}
