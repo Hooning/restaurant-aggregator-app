@@ -45,7 +45,7 @@ import Background from '../../images/blog-06.jpg';
 const divStyle = {
     width: "100%",
     height: "100%",
-    minHeight: "445px",
+    minHeight: "455px",
     backgroundImage: `url( ${Background} )`,
     backgroundSize: "100%",
     backgroundRepeat: "repeat-y",

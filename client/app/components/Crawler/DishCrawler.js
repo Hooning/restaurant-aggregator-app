@@ -96,28 +96,28 @@ class DishCrawler extends React.Component{
       <React.Fragment>
       <div style={divStyle}>
       <p className="tit3 t-center p-t-10">Dish Crawler</p>
-        <Table className="dishes">
+        <table className="dishes">
           <tbody>
             <tr>
               <td>
               <Form>
                 <FormGroup>
-                  <Label for="crawler" className="txt20"> Crawl Dishes</Label>
+                  <Label for="crawler" className="txt20 m-l-5"> Crawl Dishes</Label>
                 </FormGroup>
               </Form>
-              <Button color="danger" size="sm" onClick={() => this.crawlDishes()}>Crawl Dishes</Button>{' '}
+              <Button color="danger" size="sm" className="m-l-5" onClick={() => this.crawlDishes()}>Crawl Dishes</Button>{' '}
               <Form>
                 <FormGroup>
-                  <Label for="manual" className="txt20 p-t-40"> Input Dishes</Label>
+                  <Label for="manual" className="txt20 p-t-40  m-l-5"> Input Dishes</Label>
                   <Input type="textarea" name="dishes" id="dishes" placeholder="Input insert query for mongodb" />
                 </FormGroup>
               </Form>
-              <Button color="primary" size="sm" onClick={() => this.newDishes()}>New Dishes</Button>{' '}
+              <Button color="primary" size="sm" className="m-l-5 m-b-5" onClick={() => this.newDishes()}>New Dishes</Button>{' '}
               
               </td>
             </tr>
           </tbody>
-        </Table>
+        </table>
       </div>
       </React.Fragment>
     ); 

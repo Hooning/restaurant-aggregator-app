@@ -91,7 +91,7 @@ class Restaurants extends React.Component {
               </tr>
               </tbody>
             </table>
-            <Button outline color="danger" className="m-t-10" size="sm" onClick={() => this.deleteDish(i)}>See menus</Button>{' '}        
+            {/* <Button outline color="danger" className="m-t-10" size="sm" onClick={() => this.deleteDish(i)}>See menus</Button>{' '}         */}
             
           </div>
         ))}

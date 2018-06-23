@@ -518,7 +518,7 @@ input[type="date" i] {
 -----------------------------------------------------------
 */
 .logo {
-  height: 100px;
+  height: 85px;
 }
 
 .logo > a{
@@ -538,7 +538,6 @@ input[type="date" i] {
 */
 .wrap_menu {
   height: 100%;
-  overflow: hidden;
 }
 
 .menu {
@@ -549,7 +548,12 @@ input[type="date" i] {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  height: 30%;
+}
+
+.dropdown {
+  float: left;
+  overflow: hidden;
 }
 
 .main_menu {
@@ -665,6 +669,7 @@ input[type="date" i] {
   padding: 17px;
   margin: 10px;
   position: relative;
+  border-radius: 7px;
 }
 
 .restaurants .t-a-l {
@@ -691,15 +696,14 @@ input[type="date" i] {
   border: 5px;
   border-radius: 7px;
   margin: 10px;
+  padding: 12px;
 }
 
 .dishes table {
   border-width: 2px;
   border-style: solid;
   border-collapse: collapse;
-  padding: 10px;
   width: 100%;
-
 }
 
 .dishes th {
@@ -821,7 +825,7 @@ ul ul a {
   .social {padding-right: 0px;}
 
   .logo {
-    height: 45px;
+    height: 55px;
   }
 }
 
@@ -831,7 +835,7 @@ ul ul a {
   }
 
   .wrap_header {
-    height: 100px;
+    height: 115px;
   }
 }
 
@@ -922,12 +926,7 @@ ul ul a {
 
 @media (max-width: 576px) {
   .wrap_header {
-    height: 80px;
-  }
-
-  .gallery-sidebar {
-    padding-left: 20px;
-    padding-right: 20px;
+    height: 115px;
   }
 }
 
