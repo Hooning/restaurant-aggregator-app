@@ -1,12 +1,10 @@
 const dishUtil = require('../../utils/dishUtil.js');
+const restaurantUtil = require('../../utils/restaurantUtil.js');
+const constants = require('../../utils/constants.js');
 const crawler = require('../../crawler/crawler.js');
 // express-validator (validation)
 const { check, validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
-
-var pizzeriailficoURI = 'http://www.pizzeriailfico.com/menu/';
-var maccheronirepublicURI = 'http://www.maccheronirepublic.com/menu.html';
-var cheeboURI = 'https://docs.wixstatic.com/ugd/4875de_caecf0487c5143e09a57202d2b4376ec.pdf';
 
 module.exports = (app) => {
   app.get('/api/dishes/', (req, res, next) => {
@@ -25,14 +23,24 @@ module.exports = (app) => {
   });
 
   app.post('/api/crawlDishes', function (req, res, next) {
-    // crawler.htmlCrawler();
-    crawler.htmlCrawler.queue(pizzeriailficoURI);
-    crawler.htmlCrawler.queue(maccheronirepublicURI);
-    // console.log(crawler.htmlCrawler.log);
 
-    //console.log(crawler.htmlCrawler);
+    restaurantUtil.getAllRestaurants().then((restaurants)=>{
+      restaurants.forEach((restaurant) => {
+        // let expire = 
+        if( Date.now() - restaurant.lastUpdateDate > 24*3600*1000){
+          //do something;
+        }
+      })
+    });
+// item.expires = new Date(Date.now() + 24*3600*1000);
+
+    crawler.htmlCrawler.queue(constants.URI.pizzeriailficoURI);
+    crawler.htmlCrawler.queue(constants.URI.maccheronirepublicURI);
     
-    
+    crawler.pdfCrawler.queue({
+      uri: constants.URI.cheeboURI,
+      filename: "./files/cheebo.pdf"});
+
     // dishUtil.insertDishes(req.body)
     //   .then((data) => { return res.json(data); })
     //   .catch((err) => next(err));
