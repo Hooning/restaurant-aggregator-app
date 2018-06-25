@@ -2,6 +2,8 @@ const dishUtil = require('../../utils/dishUtil.js');
 const restaurantUtil = require('../../utils/restaurantUtil.js');
 const constants = require('../../utils/constants.js');
 const crawler = require('../../crawler/crawler.js');
+var async = require("async");
+
 // express-validator (validation)
 const { check, validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
@@ -23,33 +25,35 @@ module.exports = (app) => {
   });
 
   app.post('/api/crawlDishes', function (req, res, next) {
-<<<<<<< HEAD
-    crawler.htmlCrawler.queue(pizzeriailficoURI);
-    crawler.htmlCrawler.queue(maccheronirepublicURI);
-    
-=======
 
     restaurantUtil.getAllRestaurants().then((restaurants)=>{
-      restaurants.forEach((restaurant) => {
-        // let expire = 
-        if( Date.now() - restaurant.lastUpdateDate > 24*3600*1000){
-          //do something;
-        }
-      })
+      let updatedRestaurant = [];
+
+          for(let i=0; i< restaurants.length; i++){
+            if( Date.now() - restaurants[i].lastUpdateDate > 24*3600*1000){
+              restaurants[i].set({'lastUpdateDate': Date.now()});
+              restaurants[i].save().then((restaurant)=> {
+                if(restaurantUtil.checkPdfFile(restaurant.url)){
+                  crawler.pdfCrawler.queue({
+                    uri: restaurant.url,
+                    filename: "cheebo.pdf"});
+                }else{
+                  
+                  crawler.htmlCrawler.queue(restaurant.url);                  
+                }
+              });
+              //do something;       
+              restaurants[i]['status'] = true;    
+              updatedRestaurant.push(restaurants[i]);            
+            }else{
+              restaurants[i]['status'] = false;
+               updatedRestaurant.push(restaurants[i]);
+            }
+          }
+        return res.json(updatedRestaurant);
+      
     });
-// item.expires = new Date(Date.now() + 24*3600*1000);
 
-    crawler.htmlCrawler.queue(constants.URI.pizzeriailficoURI);
-    crawler.htmlCrawler.queue(constants.URI.maccheronirepublicURI);
-    
-    crawler.pdfCrawler.queue({
-      uri: constants.URI.cheeboURI,
-      filename: "./files/cheebo.pdf"});
-
-    // dishUtil.insertDishes(req.body)
-    //   .then((data) => { return res.json(data); })
-    //   .catch((err) => next(err));
->>>>>>> 1d34de3c1537d95b63cb44e981bdb7deaf914f18
   });
   
   app.delete('/api/dishes/:id', function (req, res, next) {

@@ -246,22 +246,6 @@ class Dishes extends React.Component{
 
         return restaurantFiltered && categoriesFiltered && ingredientsFiltered && priceFiltered;
 
-        // if( selectedCategories.length < 1 && restaurants.length < 1){
-        //   return ( ingredientsFiltered && priceFiltered);
-        // }
-        
-        // if( selectedCategories.length < 1 ){
-        //   return ( restaurantFiltered && ingredientsFiltered && priceFiltered );
-        // }
-
-        // if( restaurants.length < 1 ){
-        //   return categoriesFiltered && ingredientsFiltered && priceFiltered;
-        // }
-
-        // if( selectedCategories.length > 0 && restaurants.length > 0){
-        //   return restaurantFiltered && categoriesFiltered && ingredientsFiltered && priceFiltered;
-        // }
-
       });
 
     this.setState({filteredDishes:filteredDishesResult, currentPage: 1});

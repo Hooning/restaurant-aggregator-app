@@ -82,8 +82,6 @@ function pizzeriailfico($){
       let currency = checkCurrencySymbol(price) ? constants.EURO : constants.DOLLAR;
       ingredients = ingredients.trim().slice(0, price.length *-1).trim();
       
-
-      
       if(dishedName[0]){
          fullMenu[categoryName].push({
           'name': $(liTags[j]).find('i').text(),
@@ -101,18 +99,9 @@ function pizzeriailfico($){
   }
 
   return finalMenu;
-  // return new Promise(function(resolve, reject) {
-  //   // resolve (fullMenu);
-  //   fs.writeFile("./pizzeriailfico.json", JSON.stringify(finalMenu), function(err){
-  //     if (err) reject(err);
-  //     else resolve(finalMenu);
-  //   });
-  // });
 }
 
 function maccheronirepublic($){
-  // fs.writeFile("./maccheronirepublic.html", $(".menu"));
-
   let fullMenu = {};
   let Categories = $(".menu").find('.header-menu-inner');
   let partialMenu = $(".menu");
@@ -155,15 +144,7 @@ function maccheronirepublic($){
   }
 
   return finalMenu;
-  // return new Promise(function(resolve, reject) {
-    // resolve(fullMenu);
-    // fs.writeFile("./maccheronirepublic.json", JSON.stringify(fullMenu), function(err){
-    //   if (err) reject(err);
-    //   else resolve(JSON.stringify(fullMenu));
-    // });
-  // });
 }
-
 
 function parseSentenceForNumber(sentence){
   var matches = sentence.match(/(\+|-)?((\d+(\.\d+)?)|(\.\d+))/);
@@ -172,38 +153,9 @@ function parseSentenceForNumber(sentence){
 
 function checkCurrencySymbol(text){
   var isDollar = /[€]/.test(text.trim());
-  // var isEuro = /[€]/.test(text.trim());
   return isDollar;
 }
 
-// htmlCrawler.queue(pizzeriailficoURI);
-// htmlCrawler.queue(maccheronirepublicURI);
-
-// async.series([
-  // function(done) {
-  //   pdfCrawler.queue({
-  //     uri:cheeboURI,
-  //     filename: "cheebo.pdf"
-  //   });
-  //   done();
-  // },
-  // function(done){
-    
-    // pdfParser.on("pdfParser_dataError", errData => console.error(errData.parserError) );
-    // pdfParser.on("pdfParser_dataReady", pdfData => {
-    //   ;
-    //   restaurantUtil.getRestaurantId(constants.RESTAURANT.cheeboURI)
-    //     .then((data)=> {
-    //         let jsonData = pdf_to_json.minimizeCheebo(pdfData);
-    //         dishUtil.upsertDishes(jsonData., data._id);
-    //     });
-    // });
-  // },
-  // function(done) {
-  //   pdfParser.loadPDF("./cheebo.pdf");
-  //   done();
-  // }
-// ]);
 
 function setIntervalX(callback, delay, repetitions) {
     var x = 0;

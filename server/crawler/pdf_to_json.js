@@ -2,6 +2,7 @@ let fs = require('fs');
 var async = require("async");
 PDFParser = require("pdf2json");
 var constants = require('../utils/constants');
+var convertCategories = require('../utils/categoryUtil.js').convertCategories;
 
 // let pdfParser = new PDFParser();
 
@@ -106,7 +107,6 @@ function minimizeCheebo(pdfData){
   }
 
   //add category for each dish, add price and currency
-
   categories.forEach(function(category){
 	 		minimizeData(allDataInEachCategory[category.text], category.text);
   });
@@ -114,7 +114,7 @@ function minimizeCheebo(pdfData){
 	let finalMenu = [];
   categories.forEach(function(category){
   	allDataInEachCategory[category.text].forEach((dish) => {
-  		dish['categories'] = category.text;
+  		dish['categories'] = convertCategories(category.text);
 
   		let tmp = dish['price'];
   		let currency = checkCurrencySymbol(tmp.toString()) ? constants.EURO : constants.DOLLAR;

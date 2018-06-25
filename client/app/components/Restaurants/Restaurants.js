@@ -73,7 +73,7 @@ class Restaurants extends React.Component {
               </tr>
               <tr>
                 <td colSpan="2" className="t-middle t-center">
-                 {/* <img src={require("../../images/"+restaurant.img)} className="restaurantImg"/> */}
+                 <img src={require("../../images/"+restaurant.img)} className="restaurantImg"/>
                 </td>
               </tr>
               <tr>

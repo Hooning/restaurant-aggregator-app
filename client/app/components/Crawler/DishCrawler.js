@@ -56,10 +56,17 @@ class DishCrawler extends React.Component{
         'Content-Type':'application/json'
       }
     })
-    .then(res => { data.value = "";return res.json();})
-    .then(json => {
-      console.log('# Client: fetch => newDish')
-    });
+    .then(res => {
+      // if(res.status == 500){
+
+      // }
+      return res.json();
+      // console.log(res.json());
+      // console.log('# Client: fetch => newDish')
+      // console.log(res);
+    }).then(json => console.log(json))
+      
+    .catch((err) => {alert(err)});
   }
 
   newDishes() {
@@ -88,7 +95,7 @@ class DishCrawler extends React.Component{
     .then(res => {res.json(); data.value = "";})
     .then(json => {
       console.log('# Client: fetch => newDish')
-    });
+    }).catch((err) => {alert(err)});
   }
 
   render(){
