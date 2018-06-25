@@ -9,7 +9,13 @@ const EURO = "€";
 const DOLLAR = "$";
 const RESTAURANT = {
     pizzeriailfico : "Pizzeria Il Fico",
-    maccheronirepublic : "Maccheroni Republic"
+    maccheronirepublic : "Maccheroni Republic",
+    cheebo : "Cheebo"
+};
+const URI = {
+    pizzeriailficoURI : 'http://www.pizzeriailfico.com/menu/',
+    maccheronirepublicURI : 'http://www.maccheronirepublic.com/menu.html',
+    cheeboURI : 'https://docs.wixstatic.com/ugd/4875de_caecf0487c5143e09a57202d2b4376ec.pdf'
 };
 
 module.exports = {
@@ -22,6 +28,7 @@ module.exports = {
     DESSERT: DESSERT,
     EURO: EURO,
     DOLLAR: DOLLAR,
-    RESTAURANT: RESTAURANT
+    RESTAURANT: RESTAURANT,
+    URI: URI
 }
 

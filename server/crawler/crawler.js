@@ -7,11 +7,9 @@ const dishUtil = require('../utils/dishUtil.js');
 const restaurantUtil = require('../utils/restaurantUtil.js');
 var constants = require('../utils/constants');
 var convertCategories = require('../utils/categoryUtil.js').convertCategories;
+var pdf_to_json = require('./pdf_to_json.js');
 
-
-var pizzeriailficoURI = 'http://www.pizzeriailfico.com/menu/';
-var maccheronirepublicURI = 'http://www.maccheronirepublic.com/menu.html';
-var cheeboURI = 'https://docs.wixstatic.com/ugd/4875de_caecf0487c5143e09a57202d2b4376ec.pdf';
+var pdfParser = new PDFParser();
 
 var htmlCrawler = new Crawler({
   maxConnections : 10,
@@ -21,23 +19,20 @@ var htmlCrawler = new Crawler({
         console.log(error);
       }else{
         var $ = res.$;
-        // console.log(res.options.uri);
-      // $ is Cheerio by default
       //a lean implementation of core jQuery designed specifically for the server
-      if(res.options.uri == pizzeriailficoURI) { 
+      if(res.options.uri == constants.URI.pizzeriailficoURI) { 
         restaurantUtil.getRestaurantId(constants.RESTAURANT.pizzeriailfico)
           .then((data)=> {
             dishUtil.upsertDishes(pizzeriailfico($), data._id)
           });        
         
-      }else if (res.options.uri == maccheronirepublicURI) {
+      }else if (res.options.uri == constants.URI.maccheronirepublicURI) {
         restaurantUtil.getRestaurantId(constants.RESTAURANT.maccheronirepublic)
         .then((data)=> {
           dishUtil.upsertDishes(maccheronirepublic($), data._id)
         });        
       }
     }
-    // return new Promise ((r, r2) => r(done));
     done();
   }
 });
@@ -47,9 +42,21 @@ var pdfCrawler = new Crawler({
   jQuery:false,// set false to suppress warning message.
   callback:function(err, res, done){
     if(err){
-        console.error(err.stack);
+      console.error(err.stack);
     }else{
-        fs.createWriteStream(res.options.filename).write(res.body);
+      if (res.options.uri == constants.URI.cheeboURI){
+        pdfParser.on("pdfParser_dataError", errData => console.error(errData.parserError) );
+        pdfParser.on("pdfParser_dataReady", pdfData => {
+          restaurantUtil.getRestaurantId(constants.RESTAURANT.cheebo).then((data) => {
+            let jsonData = pdf_to_json.minimizeCheebo(pdfData);
+            // fs.writeFile("./cheebo.json",  JSON.stringify(pdf_to_json.minimizeCheebo(pdfData)));
+
+            dishUtil.upsertDishes(jsonData, data._id);
+          });
+        });
+        pdfParser.loadPDF("./cheebo.pdf");  
+      }
+
     }
     done();
   }
@@ -172,22 +179,47 @@ function checkCurrencySymbol(text){
 // htmlCrawler.queue(pizzeriailficoURI);
 // htmlCrawler.queue(maccheronirepublicURI);
 
-async.series([
-  function(done) {
-    pdfCrawler.queue({
-      uri:cheeboURI,
-      filename: "cheebo.pdf"
-    });
-    done();
-  },
-  function(done) {
-    // pdfParser.loadPDF("./cheebo.pdf");
-    done();
-  }
-]);
+// async.series([
+  // function(done) {
+  //   pdfCrawler.queue({
+  //     uri:cheeboURI,
+  //     filename: "cheebo.pdf"
+  //   });
+  //   done();
+  // },
+  // function(done){
+    
+    // pdfParser.on("pdfParser_dataError", errData => console.error(errData.parserError) );
+    // pdfParser.on("pdfParser_dataReady", pdfData => {
+    //   ;
+    //   restaurantUtil.getRestaurantId(constants.RESTAURANT.cheeboURI)
+    //     .then((data)=> {
+    //         let jsonData = pdf_to_json.minimizeCheebo(pdfData);
+    //         dishUtil.upsertDishes(jsonData., data._id);
+    //     });
+    // });
+  // },
+  // function(done) {
+  //   pdfParser.loadPDF("./cheebo.pdf");
+  //   done();
+  // }
+// ]);
+
+function setIntervalX(callback, delay, repetitions) {
+    var x = 0;
+    var intervalID = window.setInterval(function () {
+
+       callback();
+
+       if (++x === repetitions) {
+           window.clearInterval(intervalID);
+       }
+    }, delay);
+}
 
 module.exports = {
   htmlCrawler: htmlCrawler,
+  pdfCrawler: pdfCrawler,
   parseSentenceForNumber: parseSentenceForNumber,
   checkCurrencySymbol: checkCurrencySymbol
 }

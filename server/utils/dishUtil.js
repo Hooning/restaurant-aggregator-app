@@ -214,7 +214,9 @@ classifySearch = (searchString) => {
     let tmpWithoutFragments = withoutString.trim().split(" ");
     for(let i = 0; i < tmpWithoutFragments.length; i++) {
       if(tmpWithoutFragments[i].trim() != ''){
-        withoutFragments.push(tmpWithoutFragments[i]);
+        let tmp = tmpWithoutFragments[i];
+        tmp = tmp.replace(/[^a-zA-Z" ]/g, "");
+        withoutFragments.push(tmp);
       }
     }
   }

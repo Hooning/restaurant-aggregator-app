@@ -7,9 +7,7 @@ module.exports = {
     getAllRestaurants : () => {
         console.log('## getAllRestaurants ##')
 
-        return new Promise((resolve, reject) => {
-            resolve(Restaurant.find().exec());
-        })
+        return Restaurant.find().exec();
     },
 
     getRestaurantId: (string) =>{
@@ -20,7 +18,7 @@ module.exports = {
         // return new Promise ((resolve, reject) => {
         //     resolve (Restaurant.findOne(query).exec()); 
         // });
-    },
+    }
 
 
 }

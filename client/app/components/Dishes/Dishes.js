@@ -179,7 +179,6 @@ class Dishes extends React.Component{
       let index = restaurants.indexOf(checkedRestaurant);
       restaurants.splice(index, 1);
     }
-
     this.setState({restaurants});
   }
 
@@ -194,7 +193,10 @@ class Dishes extends React.Component{
       let filteredDishesResult = this.state.filteredDishes;
       let filterString = this.state.ingredients;
       filteredDishesResult = filteredDishesResult.filter((dish)=>{
-        return dish.ingredients.includes(filterString);
+        if(dish.ingredients){
+         return dish.ingredients.includes(filterString);
+        }
+        return null;
         }
       );
       // console.log(filteredDishesResult.length);
@@ -228,36 +230,39 @@ class Dishes extends React.Component{
       let filteredDishesResult = this.state.filteredDishes;
 
       filteredDishesResult = filteredDishesResult.filter(function (el) {
-      
-      if( selectedCategories.length < 1 && restaurants.length < 1){
-        return ( el.ingredients.includes(filterString) &&
-                 el.price.value >= minPrice &&
-                 el.price.value <= maxPrice );
-      }
-      
-      if( selectedCategories.length < 1 ){
-        return restaurants.indexOf(el.restaurant.name.trim()) > -1 &&
-               el.ingredients.includes(filterString) &&
-               ( el.price.value >= minPrice &&
-               el.price.value <= maxPrice );
-      }
+        let ingredientsFiltered = true;
+        let priceFiltered = el.price.value >= minPrice && el.price.value <= maxPrice ;
+        let restaurantFiltered = restaurants.indexOf(el.restaurant.name.trim()) > -1 ;
+        let categoriesFiltered = selectedCategories.indexOf(el.categories.trim()) > -1;
 
-      if( restaurants.length < 1 ){
-        return selectedCategories.indexOf(el.categories.trim()) > -1 &&
-               el.ingredients.includes(filterString) &&
-               ( el.price.value >= minPrice &&
-               el.price.value <= maxPrice );
-      }
+        if(el.ingredients)
+          ingredientsFiltered = el.ingredients.includes(filterString);
 
-      if( selectedCategories.length > 0 && restaurants.length > 0){
-        return restaurants.indexOf(el.restaurant.name.trim()) > -1 &&
-               selectedCategories.indexOf(el.categories.trim()) > -1 &&
-               el.ingredients.includes(filterString) &&
-               ( el.price.value >= minPrice &&
-                 el.price.value <= maxPrice );
-      }
+        if(selectedCategories.length < 1) 
+          categoriesFiltered = true;
 
-    });
+        if(restaurants.length < 1) 
+          restaurantFiltered = true;
+
+        return restaurantFiltered && categoriesFiltered && ingredientsFiltered && priceFiltered;
+
+        // if( selectedCategories.length < 1 && restaurants.length < 1){
+        //   return ( ingredientsFiltered && priceFiltered);
+        // }
+        
+        // if( selectedCategories.length < 1 ){
+        //   return ( restaurantFiltered && ingredientsFiltered && priceFiltered );
+        // }
+
+        // if( restaurants.length < 1 ){
+        //   return categoriesFiltered && ingredientsFiltered && priceFiltered;
+        // }
+
+        // if( selectedCategories.length > 0 && restaurants.length > 0){
+        //   return restaurantFiltered && categoriesFiltered && ingredientsFiltered && priceFiltered;
+        // }
+
+      });
 
     this.setState({filteredDishes:filteredDishesResult, currentPage: 1});
     });
@@ -385,7 +390,6 @@ class Dishes extends React.Component{
   render(){
     // displaying current dishes
     const {filteredDishes, currentPage, dishesPerPage, dishes} = this.state;
-    console.log(filteredDishes.length);
     const indexOfLastDish = currentPage * dishesPerPage;
     const indexOfFirstDish = (currentPage - 1) * dishesPerPage;
     const currentDishes = filteredDishes.slice(indexOfFirstDish, indexOfLastDish);
