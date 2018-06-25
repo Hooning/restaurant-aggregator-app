@@ -19,23 +19,15 @@ module.exports = (app) => {
   });
 
   app.post('/api/dishes', function (req, res, next) {
-    dishUtil.insertDishes(req.body)
+    dishUtil.upsertDishes(req.body)
       .then((data) => { return res.json(data); })
       .catch((err) => next(err));
   });
 
   app.post('/api/crawlDishes', function (req, res, next) {
-    // crawler.htmlCrawler();
     crawler.htmlCrawler.queue(pizzeriailficoURI);
     crawler.htmlCrawler.queue(maccheronirepublicURI);
-    // console.log(crawler.htmlCrawler.log);
-
-    //console.log(crawler.htmlCrawler);
     
-    
-    // dishUtil.insertDishes(req.body)
-    //   .then((data) => { return res.json(data); })
-    //   .catch((err) => next(err));
   });
   
   app.delete('/api/dishes/:id', function (req, res, next) {

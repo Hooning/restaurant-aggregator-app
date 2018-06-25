@@ -404,10 +404,9 @@ class Dishes extends React.Component{
 
     const renderPageNumbers = pageNumbers.map(number => {
       return (
-        <PaginationItem> 
+        <PaginationItem key={number}> 
           <PaginationLink 
           href="#" 
-          key={number}
           id={number}
           onClick={this.handleClickOnPage}>{number}
           </PaginationLink> 
@@ -418,16 +417,26 @@ class Dishes extends React.Component{
     // displaying restaurant filter
     let restaurants = [];
     for( let i = 0; i < dishes.length; i++){
-      restaurants.push(dishes[i].restaurant.name);
+      restaurants.push(dishes[i].restaurant);
     }
-    restaurants = restaurants.reduce((x, y) => x.includes(y) ? x : [...x, y], []);
+    restaurants = restaurants.reduce((x, y) => {
+      var found = false;
+      for(var i = 0; i < x.length; i++) {
+          if (x[i]._id == y._id) {
+              found = true;
+              break;
+          }
+      }      
+      return found ? x : [...x, y]
+    }, []);
 
-    const renderRestaurantFilter = restaurants.map((restaurant, i) => {      
-      return (<div key={i} >  
-        <input className="m-l-7" type="checkbox" key={i+10} id={restaurant} value={restaurant} onClick={this.checkboxFilterToggle}></input>
-        <span key={i+20}> </span>
-        <label className="fs-12" key={i+30} htmlFor={restaurant}>{restaurant}</label>
-      </div>  
+    const renderRestaurantFilter = restaurants.map(restaurant => {  
+      return (
+      <div key={restaurant._id} >  
+        <input className="m-l-7" type="checkbox" id={restaurant.name} value={restaurant.name} onClick={this.checkboxFilterToggle}></input>
+        <span> </span>
+        <label className="fs-12" htmlFor={restaurant.name}>{restaurant.name}</label>
+      </div>
       );  
     });
 
