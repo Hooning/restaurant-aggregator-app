@@ -11,7 +11,10 @@ const RestaurantSchema = new mongoose.Schema({
   telephoneNumber: String,
   url: String,
   img: String,
-  lastUpdateDate: { type: Date, default: Date.now },
+  lastUpdateDate: { 
+    type: Date, 
+    default: Date.now 
+  }
 
 });
 
