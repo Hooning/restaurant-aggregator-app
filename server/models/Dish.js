@@ -18,7 +18,9 @@ const DishSchema = new mongoose.Schema({
       ], 
      default: category.MAIN_COURSE
   },
-  restaurant: {type: mongoose.Schema.Types.ObjectId, ref: 'Restaurant'},
+  restaurant: {
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Restaurant'}
   
 });
 

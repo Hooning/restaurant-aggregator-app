@@ -15,9 +15,7 @@ module.exports = {
             'name': string
         }
         return Restaurant.findOne(query).exec();
-        // return new Promise ((resolve, reject) => {
-        //     resolve (Restaurant.findOne(query).exec()); 
-        // });
+
     },
     checkPdfFile : (string) => {
         return string.includes('.pdf');

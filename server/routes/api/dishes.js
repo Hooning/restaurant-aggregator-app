@@ -29,29 +29,29 @@ module.exports = (app) => {
     restaurantUtil.getAllRestaurants().then((restaurants)=>{
       let updatedRestaurant = [];
 
-          for(let i=0; i< restaurants.length; i++){
-            if( Date.now() - restaurants[i].lastUpdateDate > 24*3600*1000){
-              restaurants[i].set({'lastUpdateDate': Date.now()});
-              restaurants[i].save().then((restaurant)=> {
-                if(restaurantUtil.checkPdfFile(restaurant.url)){
-                  crawler.pdfCrawler.queue({
-                    uri: restaurant.url,
-                    filename: "cheebo.pdf"});
-                }else{
-                  
-                  crawler.htmlCrawler.queue(restaurant.url);                  
-                }
-              });
-              //do something;       
-              restaurants[i]['status'] = true;    
-              updatedRestaurant.push(restaurants[i]);            
+      for(let i=0; i< restaurants.length; i++){
+        if( Date.now() - restaurants[i].lastUpdateDate > 24*3600*1000){
+          restaurants[i].set({'lastUpdateDate': Date.now()});
+          restaurants[i].save().then((restaurant)=> {
+            if(restaurantUtil.checkPdfFile(restaurant.url)){
+              crawler.pdfCrawler.queue({
+                uri: restaurant.url,
+                filename: "cheebo.pdf"});
             }else{
-              restaurants[i]['status'] = false;
-               updatedRestaurant.push(restaurants[i]);
+              
+              crawler.htmlCrawler.queue(restaurant.url);                  
             }
-          }
-        return res.json(updatedRestaurant);
-      
+          }).catch(err => next(err));
+        }else{
+          let timeleft = Date.now() - restaurants[i].lastUpdateDate;
+          res.statusMessage = timeleft;
+          res.status(400).send("timeleft");
+        }
+      }
+
+      res.status(200);
+      return res.send("success");
+  
     });
 
   });
