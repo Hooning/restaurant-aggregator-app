@@ -666,14 +666,18 @@ input[type="date" i] {
   background-image: url('../images/icons/pattern2.png');
   background-repeat: repeat;
   opacity: 0.95;
-  padding: 17px;
-  margin: 10px;
+  padding: 15px;
+  margin: 7px;
   position: relative;
   border-radius: 7px;
 }
 
 .restaurants .t-a-l {
   text-align: left;
+}
+
+.restaurants table {
+  margin: 0 auto;
 }
 
 .restaurantImg {
@@ -704,6 +708,7 @@ input[type="date" i] {
   border-style: solid;
   border-collapse: collapse;
   width: 100%;
+  padding: 40px;
 }
 
 .dishes th {

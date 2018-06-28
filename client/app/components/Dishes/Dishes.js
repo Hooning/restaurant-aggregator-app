@@ -183,28 +183,31 @@ class Dishes extends React.Component{
   }
 
   filterIngredients(event){
-    let filteredDishes = this.state.dishes;
+  
+    //let filteredDishes = this.state.dishes;
     let ingredients = Object.assign({}, this.state.ingredients);
     ingredients = event.target.value;
 
-    // let filteredDishes = this.state.dishes;
-    this.setState({filteredDishes,ingredients}, function(){
+    this.setState({ingredients});
+    // this.setState({filteredDishes,ingredients}, function(){
       
-      let filteredDishesResult = this.state.filteredDishes;
-      let filterString = this.state.ingredients;
-      filteredDishesResult = filteredDishesResult.filter((dish)=>{
-        if(dish.ingredients){
-         return dish.ingredients.includes(filterString);
-        }
-        return null;
-        }
-      );
-      // console.log(filteredDishesResult.length);
-    this.setState({filteredDishes:filteredDishesResult});
-    });
+    //   let filteredDishesResult = this.state.filteredDishes;
+    //   let filterString = this.state.ingredients;
+    //   filteredDishesResult = filteredDishesResult.filter((dish)=>{
+    //     if(dish.ingredients && filterString){
+    //      return dish.ingredients.includes(filterString);
+    //     }
+    //     return null;
+    //     }
+    //   );
+    //   // console.log(filteredDishesResult.length);
+    // this.setState({filteredDishes:filteredDishesResult});
+    // });
   }
 
   checkFilters(event){
+    console.log(this.ingredients);
+
     let filteredDishes = this.state.dishes;
     this.setState({filteredDishes}, function(){
       let restaurants = this.state.restaurants;
@@ -236,7 +239,7 @@ class Dishes extends React.Component{
         let categoriesFiltered = selectedCategories.indexOf(el.categories.trim()) > -1;
 
         if(el.ingredients)
-          ingredientsFiltered = el.ingredients.includes(filterString);
+          ingredientsFiltered = el.ingredients.toLowerCase().includes(filterString.toLowerCase());
 
         if(selectedCategories.length < 1) 
           categoriesFiltered = true;
@@ -252,7 +255,7 @@ class Dishes extends React.Component{
     });
   }
 
-  resetFilters(event){
+  resetFilters(){
     //reset categories choices
     let categoriesId = ['appetizer', 'salad', 'pizza', 'pasta', 'sandwich', 'mainCourse', 'dessert'];
     categoriesId.forEach((id)=>{
@@ -307,7 +310,7 @@ class Dishes extends React.Component{
 
     //reset ingredients
     let ingredients = Object.assign({}, this.state.ingredients);
-    ingredients = event.target.value;
+    ingredients = '';
     document.getElementById('ingredientsSearch').value ='';
 
     //reset filtered Dishes
@@ -316,7 +319,10 @@ class Dishes extends React.Component{
   }
 
   getDishes() {
+    this.resetFilters();
+    
     this.setState({
+      currentPage: 1,
       dishes: [],
       filteredDishes:[]
     });
@@ -466,7 +472,7 @@ class Dishes extends React.Component{
               </li>
               <li>
                 <p className="txt8">Ingredients</p> 
-                <Input style={filterTextStyle} bssize="sm" type="search" name="ingredients" id="ingredientsSearch" placeholder="z.b. Tomato Olive Cheese" onChange={this.filterIngredients}/>
+                <Input style={filterTextStyle} bssize="sm" type="search" name="ingredients" id="ingredientsSearch" placeholder="z.b. Tomato" onChange={this.filterIngredients} />
               </li>
               <p className="txt8">Price ( $ )</p>    
               <li>

@@ -19,7 +19,11 @@ module.exports = (app) => {
   });
 
   app.post('/api/dishes', function (req, res, next) {
-    dishUtil.upsertDishes(req.body)
+    console.log(req.body);
+    
+    let id = req.body.restaurant;
+
+    dishUtil.upsertDishes(req.body, )
       .then((data) => { return res.json(data); })
       .catch((err) => next(err));
   });
@@ -30,6 +34,7 @@ module.exports = (app) => {
       let updatedRestaurant = [];
 
           for(let i=0; i< restaurants.length; i++){
+            //24*3600*1000 = 1 Day
             if( Date.now() - restaurants[i].lastUpdateDate > 24*3600*1000){
               restaurants[i].set({'lastUpdateDate': Date.now()});
               restaurants[i].save().then((restaurant)=> {

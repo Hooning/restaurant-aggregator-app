@@ -113,13 +113,13 @@ class DishCrawler extends React.Component{
                 </FormGroup>
               </Form>
               <Button color="danger" size="sm" className="m-l-5" onClick={() => this.crawlDishes()}>Crawl Dishes</Button>{' '}
-              <Form>
+              {/* <Form>
                 <FormGroup>
                   <Label for="manual" className="txt20 p-t-40  m-l-5"> Input Dishes</Label>
                   <Input type="textarea" name="dishes" id="dishes" placeholder="Input insert query for mongodb" />
                 </FormGroup>
               </Form>
-              <Button color="primary" size="sm" className="m-l-5 m-b-5" onClick={() => this.newDishes()}>New Dishes</Button>{' '}
+              <Button color="primary" size="sm" className="m-l-5 m-b-5" onClick={() => this.newDishes()}>New Dishes</Button>{' '} */}
               
               </td>
             </tr>

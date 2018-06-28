@@ -6,7 +6,6 @@ module.exports = {
     
     getAllRestaurants : () => {
         console.log('## getAllRestaurants ##')
-
         return Restaurant.find().exec();
     },
 
@@ -19,6 +18,7 @@ module.exports = {
         //     resolve (Restaurant.findOne(query).exec()); 
         // });
     },
+
     checkPdfFile : (string) => {
         return string.includes('.pdf');
     }

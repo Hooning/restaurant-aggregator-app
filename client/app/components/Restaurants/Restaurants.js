@@ -61,11 +61,12 @@ class Restaurants extends React.Component {
 
   render() {
     return (
-      <div className="container trans-0-5" style={divStyle}>
+      <div className="container trans-0-3" style={divStyle}>
         <p className="tit4 p-t-20">Restaurants</p>
         <div className="row">
         {this.state.restaurants.map((restaurant, i) => (
-          <div className="restaurants col col-sm-4 col-md-18" >
+          // col-sm-4 col-md-14
+          <div className="restaurants col-sm-4 col-md-auto" >
             <table>
               <tbody>
               <tr key={restaurant._id}>

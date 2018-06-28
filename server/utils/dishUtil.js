@@ -17,56 +17,6 @@ getQueryFromString = (searchString, recordName) => {
   query[recordName] = '/'+searchString+'/i';
 }
 
-normalSearch = (searchString) => {
-  //find with regex:
-  // db.dishes.find({'name': {$regex: ".*pan.*", $options: 'i'}});
-
-  //  db.dishes.find({
-  //     $or: [
-  //         {$or: [
-  //             {'name': {'$regex': ".*antipasto.*", $options: 'i'}},
-  //             {'name': {'$regex': ".*BRUSCHETTA .*", $options: 'i'}},
-  //         ]}
-  //     ]
-  // })
-  // console.log(searchString);
-  if(!searchString){
-    return getAllDishes();
-  }
-  let query = {};
-  let queryMaxIndex = 0; 
-  query['$or'] = []; 
-
-  query['$or'][queryMaxIndex] = {};
-  query['$or'][queryMaxIndex]['$or'] = []; 
-  queryMaxIndex++;
-  query['$or'][queryMaxIndex] = {};      
-  query['$or'][queryMaxIndex]['$or'] = [];
-  queryMaxIndex++;
-
-  // Prosciutto  basil  TRIPPA => 4
-  let fragments = searchString.trim().split(" ");
-  fragments.forEach((fragment) => {
-    if(fragment.trim()){
-      let newFilterForName = {};
-      newFilterForName['name'] = {};
-      newFilterForName['name']['$regex'] = ".*" + fragment + ".*";
-      newFilterForName['name']['$options'] = "i";
-      query['$or'][0]['$or'].push(newFilterForName);
-
-      let newFilterForIngredients = {};
-      newFilterForIngredients['ingredients'] = {};
-      newFilterForIngredients['ingredients']['$regex'] = ".*" + fragment + ".*";
-      newFilterForIngredients['ingredients']['$options'] = "i";
-      query['$or'][1]['$or'].push(newFilterForIngredients);
-    }
-  });
-
-  return new Promise ((resolve, reject)=> {
-   resolve(Dish.find(query).populate('restaurant').exec());
-  })
-};
-
 normalSearchUseDescription = (searchString, foodType, withoutFragments) => {
   if(!searchString){
     if(foodType){
@@ -267,7 +217,7 @@ classifySearch = (searchString) => {
 preciseSearch = (preciseFragments, foodType, searchString, withoutFragments) => {
   if(preciseFragments.length == 0){
     if(searchString){
-      return normalSearchUseDescription(searchString, foodType);
+      return normalSearchUseDescription(searchString, foodType, withoutFragments);
     }
     if(foodType){
      return getAllDishesOfSpecificCategory(foodType, withoutFragments);
@@ -310,13 +260,11 @@ preciseSearch = (preciseFragments, foodType, searchString, withoutFragments) => 
   query[2]['$match']['$or'][0] = {};
   query[2]['$match']['$or'][0]['$and'] = [];
 
-
   if(foodType){
     let newFilterForCategory = {};
     newFilterForCategory['categories'] = foodType;
     query[2]['$match']['$or'][0]['$and'].push(newFilterForCategory);
   }
-
 
   preciseFragments.forEach((preciseFragment) => {
     if(preciseFragment.trim() != ""){
