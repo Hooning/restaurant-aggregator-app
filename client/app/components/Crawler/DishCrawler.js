@@ -57,17 +57,22 @@ class DishCrawler extends React.Component{
       }
     })
     .then(res => {
-      if(res.status == 400){
-        let timeleft = 24*60 - parseInt(res.statusText/1000/60);
-        let realmin = timeleft % 60
-        let hours = Math.floor(timeleft / 60)
-        alert("Need to wait at least 1 day for next crawl. Time left for next crawling avaiable after " 
-          + hours + " hours " + realmin + " minutes");
-      }
-      if(res.status == 200){
-        alert("crawl successfully");
-      }
-    }).catch((err) => {
+      res.json().then(json => {
+        let leftTime = json.timeleft;
+
+        if(res.status == 400){
+          let timeleft = 24*60 - parseInt(leftTime/1000/60);
+          let realmin = timeleft % 60
+          let hours = Math.floor(timeleft / 60)
+          alert("Need to wait at least 1 day for next crawl. Time left for next crawling avaiable after " 
+            + hours + " hours " + realmin + " minutes");
+        }
+        if(res.status == 200){
+          alert(json.resultMessage);
+        }
+      })
+    })
+    .catch((err) => {
       // console.log(err);
     });
   }

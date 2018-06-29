@@ -36,25 +36,29 @@ module.exports = (app) => {
       for(let i=0; i< restaurants.length; i++){
         if( Date.now() - restaurants[i].lastUpdateDate > 24*3600*1000){
           restaurants[i].set({'lastUpdateDate': Date.now()});
-          restaurants[i].save().then((restaurant)=> {
+          restaurants[i].save()
+          .then((restaurant)=> {
             if(restaurantUtil.checkPdfFile(restaurant.url)){
               crawler.pdfCrawler.queue({
                 uri: restaurant.url,
                 filename: "cheebo.pdf"});
-            }else{
-              
+            }else{              
               crawler.htmlCrawler.queue(restaurant.url);                  
             }
-          }).catch(err => next(err));
+          })
+          .catch(err => next(err));
         }else{
           let timeleft = Date.now() - restaurants[i].lastUpdateDate;
-          res.statusMessage = timeleft;
-          res.status(400).send("timeleft");
+          res.status(400);
+          return res.json({
+            'timeleft':timeleft,
+            'resultMessage':'Time left, Can not execute crawler.'
+          });
         }
       }
 
       res.status(200);
-      return res.send("success");
+      return res.json({'resultMessage':'Crawler Successfully executed.'});
   
     });
 
@@ -62,7 +66,16 @@ module.exports = (app) => {
   
   app.delete('/api/dishes/:id', function (req, res, next) {
     dishUtil.deleteDish({ "_id": req.params.id })
-      .then((data) => { return res.json(data); })
+      .then((data) => {
+        if( data.ok == 1 && data.n == 1){
+          res.status(200);
+          data['resultMessage'] = 'Selected dish has successfully deleted';
+        }else{
+          res.status(404);
+          data['resultMessage'] = 'Selected dish is already deleted';
+        }
+        return res.json(data); 
+      })
       .catch((err) => next(err));
   });
 

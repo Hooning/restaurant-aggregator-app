@@ -420,7 +420,6 @@ module.exports = {
 
   deleteDish: (json) => {
     return new Promise((resolve, reject) => {
-      console.log('deleteDish : ' + JSON.stringify(json));
       resolve(Dish.deleteOne(json).exec());
     });
   },
