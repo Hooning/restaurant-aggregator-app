@@ -10,7 +10,7 @@ const { sanitizeBody } = require('express-validator/filter');
 
 module.exports = (app) => {
   app.get('/api/dishes/', (req, res, next) => {
-    console.log(req.query.searchString);
+    //console.log(req.query.searchString);
 
     dishUtil.searchDishes(req.query.searchString)      
       .then((data) => { 

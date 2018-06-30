@@ -206,7 +206,7 @@ class Dishes extends React.Component{
   }
 
   checkFilters(event){
-    console.log(this.ingredients);
+    //console.log(this.ingredients);
 
     let filteredDishes = this.state.dishes;
     this.setState({filteredDishes}, function(){

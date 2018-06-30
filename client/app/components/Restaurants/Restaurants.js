@@ -47,7 +47,7 @@ class Restaurants extends React.Component {
     fetch(`/api/restaurants`, {method: 'GET'})
       .then(res => res.json())
       .then(json => {
-        console.log( json );
+        //console.log( json );
         
         this.setState({
           restaurants : json,

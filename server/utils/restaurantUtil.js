@@ -5,7 +5,6 @@ const mongoose = require('mongoose');
 module.exports = {
     
     getAllRestaurants : () => {
-        console.log('## getAllRestaurants ##')
         return Restaurant.find().exec();
     },
 

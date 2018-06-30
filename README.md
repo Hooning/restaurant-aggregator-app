@@ -1,5 +1,7 @@
 # Restaurant Aggregator Application
 
+https://github.com/Hooning/restaurant-aggregator-app.git
+
 This is a restaurant aggregator project using the following technologies:
 - [React](https://facebook.github.io/react/) and [React Router](https://reacttraining.com/react-router/) for the frontend
 - [Express](http://expressjs.com/) and [Mongoose](http://mongoosejs.com/) for the backend
@@ -11,13 +13,17 @@ This is a restaurant aggregator project using the following technologies:
 ## Requirements
 
 - [Node.js](https://nodejs.org/en/) 6+
+- [MongoDB](https://www.mongodb.com/mongodb-3.6/) 3.6+
 
+## npm module package setup
+
+1. Install npm from home directory of the project <br/>
 ```shell
 npm install
 ```
+This will install all the modules stated in local package.json file. <br/> ( It may take some time to install. )
 
-- [MongoDB](https://www.mongodb.com/mongodb-3.6/) 3.6+
-
+2. Check node_modules folder in home directory if the modules are succesfully installed.
 
 ## Database setup (MongoDB)
 
@@ -79,15 +85,15 @@ db.restaurants.insertOne({
     </code>
 </pre>
 
-## Running
+## Running server
 
-Production mode:
+- Production mode:
 
 ```shell
 npm start
 ```
 
-Development (Webpack dev server) mode:
+- Development (Webpack dev server) mode:
 
 ```shell
 npm run start:dev
